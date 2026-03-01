@@ -45,5 +45,10 @@
   "logInToSync": "登入後可在不同裝置同步您的食譜",
   "signInTitle": "登入",
   "signUpTitle": "建立帳號",
-  "authError": "登入失敗，請再試一次。"
+  "authError": "登入失敗，請再試一次。",
+  "introTagline": "廚房裡不該開滿一堆分頁。",
+  "introBody": "食譜書疊成山、網頁廣告一堆，最難的往往是「找到食譜本身」。Recipe Slate 把任何食譜連結或書頁照片變成乾淨、可直接照著做的格式。",
+  "introBullet1": "從食譜連結匯入",
+  "introBullet2": "拍攝或上傳食譜書頁",
+  "introBullet3": "取得食材、步驟與購物清單——沒有多餘干擾"
 }

@@ -587,38 +587,62 @@ export default function Home() {
             )}
 
             {mode === "choose" && (
-              <div className="grid gap-5 sm:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={() => setMode("url")}
-                  className="flex flex-col items-center gap-4 rounded-[0.5rem] border border-stone-200 bg-white p-8 text-left transition hover:border-stone-300/80"
-                >
-                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-stone-100 text-stone-500">
-                    <LinkIcon />
-                  </span>
-                  <span className="font-medium text-[#1a1918]">
-                    {t("importFromUrl")}
-                  </span>
-                  <span className="text-center text-sm text-stone-500 leading-relaxed">
-                    {t("importFromUrlDesc")}
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMode("photo")}
-                  className="flex flex-col items-center gap-4 rounded-[0.5rem] border border-stone-200 bg-white p-8 text-left transition hover:border-stone-300/80"
-                >
-                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-stone-100 text-stone-500">
-                    <CameraIcon />
-                  </span>
-                  <span className="font-medium text-[#1a1918]">
-                    {t("importFromPhoto")}
-                  </span>
-                  <span className="text-center text-sm text-stone-500 leading-relaxed">
-                    {t("importFromPhotoDesc")}
-                  </span>
-                </button>
-              </div>
+              <>
+                <section className="mb-10">
+                  <p className="text-lg font-semibold tracking-tight text-[#1a1918] sm:text-xl">
+                    {t("introTagline")}
+                  </p>
+                  <p className="mt-3 text-sm text-stone-500 leading-relaxed sm:text-base">
+                    {t("introBody")}
+                  </p>
+                  <ul className="mt-5 space-y-2 text-sm text-stone-600">
+                    <li className="flex items-center gap-2">
+                      <span className="text-stone-400" aria-hidden>•</span>
+                      {t("introBullet1")}
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-stone-400" aria-hidden>•</span>
+                      {t("introBullet2")}
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-stone-400" aria-hidden>•</span>
+                      {t("introBullet3")}
+                    </li>
+                  </ul>
+                </section>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={() => setMode("url")}
+                    className="flex flex-col items-center gap-4 rounded-[0.5rem] border border-stone-200 bg-white p-8 text-left transition hover:border-stone-300/80"
+                  >
+                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-stone-100 text-stone-500">
+                      <LinkIcon />
+                    </span>
+                    <span className="font-medium text-[#1a1918]">
+                      {t("importFromUrl")}
+                    </span>
+                    <span className="text-center text-sm text-stone-500 leading-relaxed">
+                      {t("importFromUrlDesc")}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMode("photo")}
+                    className="flex flex-col items-center gap-4 rounded-[0.5rem] border border-stone-200 bg-white p-8 text-left transition hover:border-stone-300/80"
+                  >
+                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-stone-100 text-stone-500">
+                      <CameraIcon />
+                    </span>
+                    <span className="font-medium text-[#1a1918]">
+                      {t("importFromPhoto")}
+                    </span>
+                    <span className="text-center text-sm text-stone-500 leading-relaxed">
+                      {t("importFromPhotoDesc")}
+                    </span>
+                  </button>
+                </div>
+              </>
             )}
 
             {mode === "url" && (
