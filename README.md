@@ -1,4 +1,10 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+This is a [Next.js](https://nextjs.org) project: **Recipe Slate** — import recipes from URLs or cookbook photos.
+
+## Recipe Slate
+
+- **Import from URL** — Paste a recipe link; the app scrapes structured data (JSON-LD / schema.org) and shows ingredients and steps.
+- **Import from photo** — Upload a photo of a cookbook page; OCR extracts text and parses it into ingredients and steps.
+- **Recipe view** — Tabbed layout (Ingredients | Steps), optional image, prep/cook time and servings. Works on desktop and mobile.
 
 ## Getting Started
 
