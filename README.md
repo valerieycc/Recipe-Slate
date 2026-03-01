@@ -5,8 +5,17 @@ This is a [Next.js](https://nextjs.org) project: **Recipe Slate** — import rec
 - **Import from URL** — Paste a recipe link; the app scrapes structured data (JSON-LD / schema.org) and shows ingredients and steps.
 - **Import from photo** — Upload a photo of a cookbook page; OCR extracts text and parses it into ingredients and steps.
 - **Recipe view** — Tabbed layout (Ingredients | Steps), optional image, prep/cook time and servings. Works on desktop and mobile.
+- **Saved recipes** — Save for 30 days or permanently. When you **log in**, data is stored on the server and syncs across devices; when signed out, data stays in the browser (localStorage).
+- **Recently browsed** — Automatic history of viewed recipes; same server/local behavior as saved when logged in.
 
-## Getting Started
+## Supabase setup (for login & server-side storage)
+
+1. Create a project at [Supabase](https://supabase.com).
+2. In the SQL Editor, run the contents of `supabase/migrations/001_saved_and_recent.sql` to create `saved_recipes` and `recent_recipes` tables and RLS policies.
+3. Copy `.env.example` to `.env.local` and set:
+   - `NEXT_PUBLIC_SUPABASE_URL` — Project URL from Supabase dashboard
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — anon/public key from API settings
+4. In Supabase **Authentication → Providers**, enable **Anonymous sign-ins** so users can log in with one click (no email or password).
 
 First, run the development server:
 

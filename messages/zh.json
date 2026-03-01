@@ -32,5 +32,18 @@
   "savedListTitle": "已儲存食譜",
   "noSavedRecipes": "暫無已儲存食譜。匯入食譜後點擊「儲存食譜」即可儲存到此。",
   "permanent": "永久",
-  "removeFromSavedAria": "從已儲存中移除"
+  "removeFromSavedAria": "從已儲存中移除",
+  "recentlyBrowsed": "最近瀏覽",
+  "recentListTitle": "最近瀏覽",
+  "noRecentRecipes": "您查看過的食譜會顯示在這裡。",
+  "removeFromRecentAria": "從紀錄中移除",
+  "signIn": "登入",
+  "signUp": "註冊",
+  "signOut": "登出",
+  "email": "電子信箱",
+  "password": "密碼",
+  "logInToSync": "登入後可在不同裝置同步您的食譜",
+  "signInTitle": "登入",
+  "signUpTitle": "建立帳號",
+  "authError": "登入失敗，請再試一次。"
 }

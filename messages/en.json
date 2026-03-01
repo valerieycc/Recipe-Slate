@@ -32,5 +32,18 @@
   "savedListTitle": "Saved recipes",
   "noSavedRecipes": "No saved recipes yet. Import a recipe and choose \"Save recipe\" to keep it here.",
   "permanent": "Permanent",
-  "removeFromSavedAria": "Remove from saved"
+  "removeFromSavedAria": "Remove from saved",
+  "recentlyBrowsed": "Recently browsed",
+  "recentListTitle": "Recently browsed",
+  "noRecentRecipes": "Recipes you view will appear here.",
+  "removeFromRecentAria": "Remove from history",
+  "signIn": "Log in",
+  "signUp": "Sign up",
+  "signOut": "Sign out",
+  "email": "Email",
+  "password": "Password",
+  "logInToSync": "Log in to sync your recipes across devices",
+  "signInTitle": "Sign in",
+  "signUpTitle": "Create account",
+  "authError": "Could not sign in. Try again."
 }

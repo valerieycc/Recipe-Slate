@@ -32,5 +32,18 @@
   "savedListTitle": "저장된 레시피",
   "noSavedRecipes": "저장된 레시피가 없습니다. 레시피를 가져온 뒤 \"레시피 저장\"을 선택하세요.",
   "permanent": "영구",
-  "removeFromSavedAria": "저장 목록에서 제거"
+  "removeFromSavedAria": "저장 목록에서 제거",
+  "recentlyBrowsed": "최근 본 레시피",
+  "recentListTitle": "최근 본 레시피",
+  "noRecentRecipes": "열어 본 레시피가 여기에 표시됩니다.",
+  "removeFromRecentAria": "기록에서 제거",
+  "signIn": "로그인",
+  "signUp": "가입",
+  "signOut": "로그아웃",
+  "email": "이메일",
+  "password": "비밀번호",
+  "logInToSync": "로그인하면 기기 간에 레시피가 동기화됩니다",
+  "signInTitle": "로그인",
+  "signUpTitle": "계정 만들기",
+  "authError": "로그인할 수 없습니다. 다시 시도하세요."
 }

@@ -79,3 +79,59 @@ export function daysUntilExpiry(item: SavedRecipe): number | null {
   const days = Math.ceil((expiresAt - Date.now()) / (24 * 60 * 60 * 1000));
   return Math.max(0, days);
 }
+
+// ——— Recently browsed (automatic history; distinct from saved) ———
+
+const RECENT_KEY = "recipe-slate-recent";
+const RECENT_MAX = 50;
+
+export interface RecentEntry {
+  id: string;
+  viewedAt: string;
+  recipe: Recipe;
+}
+
+function loadRecentRaw(): RecentEntry[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(RECENT_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as RecentEntry[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveRecent(list: RecentEntry[]) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(RECENT_KEY, JSON.stringify(list));
+  } catch (e) {
+    console.warn("Failed to save recent", e);
+  }
+}
+
+/** Dedupe key: same recipe = same source+name (or name if no source). */
+function recentKey(recipe: Recipe): string {
+  return [recipe.source ?? "", recipe.name].join("::");
+}
+
+export function getRecentRecipes(): RecentEntry[] {
+  return loadRecentRaw();
+}
+
+export function addToRecent(recipe: Recipe): void {
+  const list = loadRecentRaw();
+  const key = recentKey(recipe);
+  const viewedAt = new Date().toISOString();
+  const without = list.filter((e) => recentKey(e.recipe) !== key);
+  const entry: RecentEntry = { id: crypto.randomUUID(), viewedAt, recipe };
+  const next = [entry, ...without].slice(0, RECENT_MAX);
+  saveRecent(next);
+}
+
+export function removeFromRecent(id: string): void {
+  const list = loadRecentRaw().filter((e) => e.id !== id);
+  saveRecent(list);
+}

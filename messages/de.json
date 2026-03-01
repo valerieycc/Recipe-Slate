@@ -32,5 +32,18 @@
   "savedListTitle": "Gespeicherte Rezepte",
   "noSavedRecipes": "Noch keine gespeicherten Rezepte. Rezept importieren und „Rezept speichern“ wählen.",
   "permanent": "Dauerhaft",
-  "removeFromSavedAria": "Aus Gespeichert entfernen"
+  "removeFromSavedAria": "Aus Gespeichert entfernen",
+  "recentlyBrowsed": "Zuletzt angesehen",
+  "recentListTitle": "Zuletzt angesehen",
+  "noRecentRecipes": "Rezepte, die Sie ansehen, erscheinen hier.",
+  "removeFromRecentAria": "Aus Verlauf entfernen",
+  "signIn": "Anmelden",
+  "signUp": "Registrieren",
+  "signOut": "Abmelden",
+  "email": "E-Mail",
+  "password": "Passwort",
+  "logInToSync": "Anmelden, um Rezepte geräteübergreifend zu synchronisieren",
+  "signInTitle": "Anmelden",
+  "signUpTitle": "Konto erstellen",
+  "authError": "Anmeldung fehlgeschlagen. Bitte erneut versuchen."
 }

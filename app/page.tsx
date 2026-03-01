@@ -1,21 +1,25 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { Recipe } from "@/lib/types";
-import type { SavedRecipe } from "@/lib/storage";
+import type { SavedRecipe, RecentEntry } from "@/lib/storage";
 import {
   getSavedRecipes,
   saveRecipe,
   deleteSavedRecipe,
   setPermanent,
   daysUntilExpiry,
+  getRecentRecipes,
+  addToRecent,
+  removeFromRecent,
 } from "@/lib/storage";
 import { useLocale } from "./LocaleProvider";
 import { RecipeView } from "./RecipeView";
 import { LOCALES } from "@/lib/i18n";
 
 type Mode = "choose" | "url" | "photo";
-type View = "home" | "recipe" | "saved-list";
+type View = "home" | "recipe" | "saved-list" | "recent-list";
+type AuthUser = { id: string; email?: string };
 
 export default function Home() {
   const { t, locale, setLocale } = useLocale();
@@ -24,6 +28,7 @@ export default function Home() {
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [currentSaved, setCurrentSaved] = useState<SavedRecipe | null>(null);
   const [savedList, setSavedList] = useState<SavedRecipe[]>([]);
+  const [recentList, setRecentList] = useState<RecentEntry[]>([]);
   const [urlInput, setUrlInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,9 +36,61 @@ export default function Home() {
   const [langOpen, setLangOpen] = useState(false);
   const [translatedRecipe, setTranslatedRecipe] = useState<Recipe | null>(null);
   const [translationLoading, setTranslationLoading] = useState(false);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  const fetchSavedFromServer = useCallback(async () => {
+    const res = await fetch("/api/saved");
+    if (!res.ok) return;
+    const data = await res.json();
+    setSavedList(Array.isArray(data) ? data : []);
+  }, []);
+  const fetchRecentFromServer = useCallback(async () => {
+    const res = await fetch("/api/recent");
+    if (!res.ok) return;
+    const data = await res.json();
+    setRecentList(Array.isArray(data) ? data : []);
+  }, []);
 
   useEffect(() => {
-    setSavedList(getSavedRecipes());
+    let cancelled = false;
+    setAuthLoading(true);
+    fetch("/api/auth/session")
+      .then((res) => {
+        if (cancelled) return;
+        if (res.ok) return res.json();
+        setUser(null);
+        setSavedList(getSavedRecipes());
+        setRecentList(getRecentRecipes());
+      })
+      .then((data) => {
+        if (cancelled || !data?.user) return;
+        setUser(data.user);
+        return Promise.all([fetch("/api/saved"), fetch("/api/recent")]);
+      })
+      .then((responses) => {
+        if (cancelled || !responses?.length) return;
+        return Promise.all(responses.map((r) => r.json()));
+      })
+      .then((result) => {
+        if (cancelled || !result || result.length !== 2) return;
+        const [saved, recent] = result;
+        setSavedList(Array.isArray(saved) ? saved : []);
+        setRecentList(Array.isArray(recent) ? recent : []);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setUser(null);
+          setSavedList(getSavedRecipes());
+          setRecentList(getRecentRecipes());
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setAuthLoading(false);
+      });
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
@@ -83,7 +140,37 @@ export default function Home() {
   }, [recipe, locale]);
 
   function refreshSavedList() {
-    setSavedList(getSavedRecipes());
+    if (user) {
+      fetchSavedFromServer();
+    } else {
+      setSavedList(getSavedRecipes());
+    }
+  }
+
+  function refreshRecentList() {
+    if (user) {
+      fetchRecentFromServer();
+    } else {
+      setRecentList(getRecentRecipes());
+    }
+  }
+
+  async function addToRecentMaybe(recipe: Recipe) {
+    if (user) {
+      try {
+        const res = await fetch("/api/recent", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ recipe }),
+        });
+        if (res.ok) fetchRecentFromServer();
+      } catch {
+        // ignore
+      }
+    } else {
+      addToRecent(recipe);
+      setRecentList(getRecentRecipes());
+    }
   }
 
   async function handleSubmitUrl(e: React.FormEvent) {
@@ -100,6 +187,7 @@ export default function Home() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed to load recipe");
       setRecipe(data);
+      addToRecentMaybe(data);
       setCurrentSaved(null);
       setView("recipe");
       setMode("choose");
@@ -125,6 +213,7 @@ export default function Home() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed to read recipe");
       setRecipe(data);
+      addToRecentMaybe(data);
       setCurrentSaved(null);
       setView("recipe");
       setMode("choose");
@@ -147,6 +236,23 @@ export default function Home() {
 
   function handleSaveRecipe(isPermanent: boolean) {
     if (!recipe) return;
+    if (user) {
+      fetch("/api/saved", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ recipe, isPermanent }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.id) {
+            setCurrentSaved({ ...recipe, id: data.id, savedAt: data.savedAt, isPermanent: data.isPermanent });
+            fetchSavedFromServer();
+          }
+        })
+        .catch(() => {});
+      setSaveMenuOpen(false);
+      return;
+    }
     const saved = saveRecipe(recipe, isPermanent);
     setCurrentSaved(saved);
     setSaveMenuOpen(false);
@@ -156,11 +262,36 @@ export default function Home() {
   function openSavedRecipe(item: SavedRecipe) {
     setRecipe(item);
     setCurrentSaved(item);
+    addToRecentMaybe(item);
+    setView("recipe");
+  }
+
+  function goToRecentList() {
+    setView("recent-list");
+    setRecipe(null);
+    setCurrentSaved(null);
+    refreshRecentList();
+  }
+
+  function openRecentRecipe(entry: RecentEntry) {
+    setRecipe(entry.recipe);
+    setCurrentSaved(null);
+    addToRecentMaybe(entry.recipe);
     setView("recipe");
   }
 
   function handleRemoveFromSaved() {
     if (!currentSaved) return;
+    if (user) {
+      fetch(`/api/saved?id=${encodeURIComponent(currentSaved.id)}`, { method: "DELETE" })
+        .then(() => {
+          setRecipe(null);
+          setCurrentSaved(null);
+          setView("home");
+          fetchSavedFromServer();
+        });
+      return;
+    }
     deleteSavedRecipe(currentSaved.id);
     setRecipe(null);
     setCurrentSaved(null);
@@ -170,6 +301,18 @@ export default function Home() {
 
   function handleKeepPermanent() {
     if (!currentSaved) return;
+    if (user) {
+      fetch("/api/saved", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: currentSaved.id, isPermanent: true }),
+      })
+        .then(() => {
+          setCurrentSaved({ ...currentSaved, isPermanent: true });
+          fetchSavedFromServer();
+        });
+      return;
+    }
     setPermanent(currentSaved.id, true);
     setCurrentSaved({ ...currentSaved, isPermanent: true });
     refreshSavedList();
@@ -243,6 +386,42 @@ export default function Home() {
             >
               {t("savedRecipes")}{savedList.length > 0 ? ` (${savedList.length})` : ""}
             </button>
+            <button
+              type="button"
+              onClick={() => (view === "recent-list" ? setView("home") : goToRecentList())}
+              className={`rounded-md px-3 py-1.5 text-sm ${
+                view === "recent-list"
+                  ? "bg-stone-200/70 text-[#1a1918]"
+                  : "text-stone-500 hover:bg-stone-200/50 hover:text-[#1a1918]"
+              }`}
+            >
+              {t("recentlyBrowsed")}{recentList.length > 0 ? ` (${recentList.length})` : ""}
+            </button>
+            {!authLoading && (
+              user ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    fetch("/api/auth/sign-out", { method: "POST" }).then(() => {
+                      setUser(null);
+                      setSavedList(getSavedRecipes());
+                      setRecentList(getRecentRecipes());
+                    });
+                  }}
+                  className="rounded-md px-3 py-1.5 text-sm text-stone-500 hover:bg-stone-200/50 hover:text-[#1a1918]"
+                >
+                  {t("signOut")}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => { setAuthModalOpen(true); setAuthError(null); }}
+                  className="rounded-md px-3 py-1.5 text-sm text-stone-500 hover:bg-stone-200/50 hover:text-[#1a1918]"
+                >
+                  {t("signIn")}
+                </button>
+              )
+            )}
             {showingRecipe && (
               <button
                 type="button"
@@ -256,18 +435,70 @@ export default function Home() {
         </div>
       </header>
 
+      {authModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40" aria-hidden onClick={() => setAuthModalOpen(false)} />
+          <div className="relative w-full max-w-sm rounded-lg border border-stone-200 bg-white p-6 shadow-lg">
+            <p className="mb-4 text-sm text-stone-500">{t("logInToSync")}</p>
+            {authError && (
+              <p className="mb-3 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">{authError}</p>
+            )}
+            <button
+              type="button"
+              onClick={async () => {
+                setAuthError(null);
+                const res = await fetch("/api/auth/sign-in-anonymous", { method: "POST" });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                  setAuthError(data.error ?? t("authError"));
+                  return;
+                }
+                setAuthModalOpen(false);
+                setUser(data.user ?? { id: "" });
+                fetchSavedFromServer();
+                fetchRecentFromServer();
+              }}
+              className="w-full rounded bg-[#1a1918] px-4 py-2 text-sm font-medium text-[#f8f6f3] hover:opacity-90"
+            >
+              {t("signIn")}
+            </button>
+          </div>
+        </div>
+      )}
+
       <main className="mx-auto max-w-3xl px-5 py-8 sm:px-8 sm:py-12">
         {view === "saved-list" && (
           <SavedList
             list={savedList}
             onOpen={openSavedRecipe}
             onDelete={(id) => {
-              deleteSavedRecipe(id);
-              refreshSavedList();
+              if (user) {
+                fetch(`/api/saved?id=${encodeURIComponent(id)}`, { method: "DELETE" }).then(() => fetchSavedFromServer());
+              } else {
+                deleteSavedRecipe(id);
+                refreshSavedList();
+              }
             }}
             onBack={() => setView("home")}
             t={t}
             daysUntilExpiry={daysUntilExpiry}
+          />
+        )}
+
+        {view === "recent-list" && (
+          <RecentList
+            list={recentList}
+            onOpen={openRecentRecipe}
+            onRemove={(id) => {
+              if (user) {
+                fetch(`/api/recent?id=${encodeURIComponent(id)}`, { method: "DELETE" }).then(() => fetchRecentFromServer());
+              } else {
+                removeFromRecent(id);
+                refreshRecentList();
+              }
+            }}
+            onBack={() => setView("home")}
+            t={t}
           />
         )}
 
@@ -460,6 +691,68 @@ export default function Home() {
           </>
         )}
       </main>
+    </div>
+  );
+}
+
+function RecentList({
+  list,
+  onOpen,
+  onRemove,
+  onBack,
+  t,
+}: {
+  list: RecentEntry[];
+  onOpen: (entry: RecentEntry) => void;
+  onRemove: (id: string) => void;
+  onBack: () => void;
+  t: (key: string, params?: Record<string, string | number>) => string;
+}) {
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={onBack}
+        className="mb-5 text-sm text-stone-500 hover:text-[#1a1918]"
+      >
+        ← {t("back")}
+      </button>
+      <h2 className="mb-6 text-xl font-medium tracking-tight text-[#1a1918]">
+        {t("recentListTitle")}
+      </h2>
+      {list.length === 0 ? (
+        <p className="rounded-[0.5rem] border border-stone-200 bg-white p-8 text-center text-stone-500 leading-relaxed">
+          {t("noRecentRecipes")}
+        </p>
+      ) : (
+        <ul className="space-y-2">
+          {list.map((entry) => (
+            <li
+              key={entry.id}
+              className="flex items-center justify-between gap-3 rounded-[0.5rem] border border-stone-200 bg-white px-4 py-3"
+            >
+              <button
+                type="button"
+                onClick={() => onOpen(entry)}
+                className="min-w-0 flex-1 text-left font-medium text-[#1a1918] hover:text-stone-600"
+              >
+                {entry.recipe.name}
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove(entry.id);
+                }}
+                className="shrink-0 rounded p-1.5 text-stone-500 hover:bg-stone-100 hover:text-red-700/90"
+                aria-label={t("removeFromRecentAria")}
+              >
+                <TrashIcon />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
