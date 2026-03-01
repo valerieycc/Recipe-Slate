@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+/* Misty Tea & Clay–inspired: calm, airy, warm minimal */
 :root {
   --background: #f8f6f3;
   --foreground: #1a1918;
@@ -26,11 +27,18 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: #f8f6f3;
+  color: #1a1918;
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   -webkit-tap-highlight-color: transparent;
   line-height: 1.6;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #0f0e0d;
+    color: #f5f3f0;
+  }
 }
 
 /* Editorial: calm, readable body text */

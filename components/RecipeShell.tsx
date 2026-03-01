@@ -35,7 +35,7 @@ export function RecipeShell({ recipe, t }: RecipeShellProps) {
 
       {/* Editorial block: title, source, meta — generous spacing */}
       <div className="border-b border-stone-200/60 px-6 py-8 sm:px-10 sm:py-10">
-        <h1 className="text-3xl font-light tracking-tight text-stone-900 sm:text-4xl sm:tracking-tight">
+        <h1 className="text-2xl font-medium tracking-tight text-stone-900 sm:text-[1.75rem] sm:tracking-tight">
           {recipe.name}
         </h1>
         {recipe.source && (

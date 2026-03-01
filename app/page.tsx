@@ -186,10 +186,10 @@ export default function Home() {
   const isSaved = currentSaved != null;
 
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-      <header className="sticky top-0 z-30 border-b border-[var(--border-subtle)] bg-[var(--background)]/95 backdrop-blur-sm">
+    <div className="min-h-screen bg-[#f8f6f3] text-[#1a1918]">
+      <header className="sticky top-0 z-30 border-b border-stone-200/50 bg-[#f8f6f3]/95 backdrop-blur-sm">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-2 px-5 py-4 sm:px-8">
-          <h1 className="text-lg font-medium tracking-tight text-[var(--foreground)]">
+          <h1 className="text-lg font-medium tracking-tight text-[#1a1918]">
             {t("appTitle")}
           </h1>
           <div className="flex items-center gap-1">
@@ -197,7 +197,7 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => setLangOpen((o) => !o)}
-                className="rounded-md px-2 py-1.5 text-sm text-[var(--muted)] hover:bg-stone-200/60 hover:text-[var(--foreground)]"
+                className="rounded-md px-2 py-1.5 text-sm text-stone-500 hover:bg-stone-200/60 hover:text-[#1a1918]"
                 aria-label="Language"
                 aria-expanded={langOpen}
               >
@@ -210,7 +210,7 @@ export default function Home() {
                     aria-hidden
                     onClick={() => setLangOpen(false)}
                   />
-                  <div className="absolute right-0 top-full z-20 mt-1 w-40 rounded-md border border-[var(--border)] bg-white py-1">
+                  <div className="absolute right-0 top-full z-20 mt-1 w-40 rounded-md border border-stone-200 bg-white py-1 shadow-sm">
                     {LOCALES.map((l) => (
                       <button
                         key={l.value}
@@ -221,8 +221,8 @@ export default function Home() {
                         }}
                         className={`block w-full px-4 py-2 text-left text-sm ${
                           locale === l.value
-                            ? "bg-stone-100 font-medium text-[var(--foreground)]"
-                            : "text-[var(--muted)] hover:bg-stone-50"
+                            ? "bg-stone-100 font-medium text-[#1a1918]"
+                            : "text-stone-500 hover:bg-stone-50"
                         }`}
                       >
                         {l.label}
@@ -237,8 +237,8 @@ export default function Home() {
               onClick={() => (view === "saved-list" ? setView("home") : goToSavedList())}
               className={`rounded-md px-3 py-1.5 text-sm ${
                 view === "saved-list"
-                  ? "bg-stone-200/70 text-[var(--foreground)]"
-                  : "text-[var(--muted)] hover:bg-stone-200/50 hover:text-[var(--foreground)]"
+                  ? "bg-stone-200/70 text-[#1a1918]"
+                  : "text-stone-500 hover:bg-stone-200/50 hover:text-[#1a1918]"
               }`}
             >
               {t("savedRecipes")}{savedList.length > 0 ? ` (${savedList.length})` : ""}
@@ -247,7 +247,7 @@ export default function Home() {
               <button
                 type="button"
                 onClick={clearRecipe}
-                className="rounded-md px-3 py-1.5 text-sm text-[var(--muted)] hover:bg-stone-200/50 hover:text-[var(--foreground)]"
+                className="rounded-md px-3 py-1.5 text-sm text-stone-500 hover:bg-stone-200/50 hover:text-[#1a1918]"
               >
                 {t("newRecipe")}
               </button>
@@ -274,15 +274,15 @@ export default function Home() {
         {showingRecipe && (
           <>
             {translationLoading && (
-              <p className="mb-3 text-sm text-[var(--muted)]">
+              <p className="mb-3 text-sm text-stone-500">
                 {t("translating")}
               </p>
             )}
             <RecipeView recipe={translatedRecipe ?? recipe!} />
-            <div className="mt-8 flex flex-wrap items-center gap-4 border-t border-[var(--border-subtle)] pt-6">
+            <div className="mt-8 flex flex-wrap items-center gap-4 border-t border-stone-200/60 pt-6">
               {isSaved ? (
                 <>
-                  <span className="text-sm text-[var(--muted)]">
+                  <span className="text-sm text-stone-500">
                     {currentSaved.isPermanent
                       ? t("savedPermanently")
                       : t("expiresInDays", { days: daysUntilExpiry(currentSaved)! })}
@@ -291,7 +291,7 @@ export default function Home() {
                     <button
                       type="button"
                       onClick={handleKeepPermanent}
-                      className="rounded-md border border-[var(--border)] bg-white px-3 py-1.5 text-sm font-medium text-[var(--foreground)] hover:bg-stone-50"
+                      className="rounded-md border border-stone-200 bg-white px-3 py-1.5 text-sm font-medium text-[#1a1918] hover:bg-stone-50"
                     >
                       {t("keepPermanently")}
                     </button>
@@ -299,7 +299,7 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={handleRemoveFromSaved}
-                    className="text-sm text-[var(--muted)] underline hover:text-[var(--foreground)]"
+                    className="text-sm text-stone-500 underline hover:text-[#1a1918]"
                   >
                     {t("removeFromSaved")}
                   </button>
@@ -309,7 +309,7 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => setSaveMenuOpen((o) => !o)}
-                    className="rounded-md border border-[var(--foreground)]/80 bg-[var(--foreground)] px-4 py-2 text-sm font-medium text-[var(--background)] hover:opacity-90"
+                    className="rounded-md border border-[#1a1918]/80 bg-[#1a1918] px-4 py-2 text-sm font-medium text-[#f8f6f3] hover:opacity-90"
                   >
                     {t("saveRecipe")}
                   </button>
@@ -320,18 +320,18 @@ export default function Home() {
                         aria-hidden
                         onClick={() => setSaveMenuOpen(false)}
                       />
-                      <div className="absolute left-0 top-full z-20 mt-1 w-56 rounded-md border border-[var(--border)] bg-white py-1">
+                      <div className="absolute left-0 top-full z-20 mt-1 w-56 rounded-md border border-stone-200 bg-white py-1 shadow-sm">
                         <button
                           type="button"
                           onClick={() => handleSaveRecipe(false)}
-                          className="block w-full px-4 py-2 text-left text-sm text-[var(--foreground)] hover:bg-stone-50"
+                          className="block w-full px-4 py-2 text-left text-sm text-[#1a1918] hover:bg-stone-50"
                         >
                           {t("saveFor30Days")}
                         </button>
                         <button
                           type="button"
                           onClick={() => handleSaveRecipe(true)}
-                          className="block w-full px-4 py-2 text-left text-sm text-[var(--foreground)] hover:bg-stone-50"
+                          className="block w-full px-4 py-2 text-left text-sm text-[#1a1918] hover:bg-stone-50"
                         >
                           {t("savePermanently")}
                         </button>
@@ -360,30 +360,30 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => setMode("url")}
-                  className="flex flex-col items-center gap-4 rounded-[0.5rem] border border-[var(--border)] bg-white p-8 text-left transition hover:border-stone-300/80"
+                  className="flex flex-col items-center gap-4 rounded-[0.5rem] border border-stone-200 bg-white p-8 text-left transition hover:border-stone-300/80"
                 >
-                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-stone-100/80 text-[var(--muted)]">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-stone-100 text-stone-500">
                     <LinkIcon />
                   </span>
-                  <span className="font-medium text-[var(--foreground)]">
+                  <span className="font-medium text-[#1a1918]">
                     {t("importFromUrl")}
                   </span>
-                  <span className="text-center text-sm text-[var(--muted)] leading-relaxed">
+                  <span className="text-center text-sm text-stone-500 leading-relaxed">
                     {t("importFromUrlDesc")}
                   </span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setMode("photo")}
-                  className="flex flex-col items-center gap-4 rounded-[0.5rem] border border-[var(--border)] bg-white p-8 text-left transition hover:border-stone-300/80"
+                  className="flex flex-col items-center gap-4 rounded-[0.5rem] border border-stone-200 bg-white p-8 text-left transition hover:border-stone-300/80"
                 >
-                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-stone-100/80 text-[var(--muted)]">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-stone-100 text-stone-500">
                     <CameraIcon />
                   </span>
-                  <span className="font-medium text-[var(--foreground)]">
+                  <span className="font-medium text-[#1a1918]">
                     {t("importFromPhoto")}
                   </span>
-                  <span className="text-center text-sm text-[var(--muted)] leading-relaxed">
+                  <span className="text-center text-sm text-stone-500 leading-relaxed">
                     {t("importFromPhotoDesc")}
                   </span>
                 </button>
@@ -395,12 +395,12 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => setMode("choose")}
-                  className="mb-5 text-sm text-[var(--muted)] hover:text-[var(--foreground)]"
+                  className="mb-5 text-sm text-stone-500 hover:text-[#1a1918]"
                 >
                   ← {t("back")}
                 </button>
                 <form onSubmit={handleSubmitUrl} className="space-y-5">
-                  <label className="block text-sm font-medium text-[var(--foreground)]">
+                  <label className="block text-sm font-medium text-[#1a1918]">
                     {t("recipeUrl")}
                   </label>
                   <input
@@ -408,13 +408,13 @@ export default function Home() {
                     value={urlInput}
                     onChange={(e) => setUrlInput(e.target.value)}
                     placeholder="https://cooking.nytimes.com/recipes/..."
-                    className="w-full rounded-md border border-[var(--border)] bg-white px-4 py-3 text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-400/50"
+                    className="w-full rounded-md border border-stone-200 bg-white px-4 py-3 text-[#1a1918] placeholder:text-stone-500 focus:border-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-400/50"
                     autoFocus
                   />
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full rounded-md bg-[var(--foreground)] px-4 py-3 font-medium text-[var(--background)] hover:opacity-90 disabled:opacity-50"
+                    className="w-full rounded-md bg-[#1a1918] px-4 py-3 font-medium text-[#f8f6f3] hover:opacity-90 disabled:opacity-50"
                   >
                     {loading ? t("loading") : t("importRecipe")}
                   </button>
@@ -427,18 +427,18 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => setMode("choose")}
-                  className="mb-5 text-sm text-[var(--muted)] hover:text-[var(--foreground)]"
+                  className="mb-5 text-sm text-stone-500 hover:text-[#1a1918]"
                 >
                   ← {t("back")}
                 </button>
-                <label className="flex cursor-pointer flex-col items-center gap-5 rounded-[0.5rem] border-2 border-dashed border-[var(--border)] bg-white p-10 transition hover:border-stone-300/80 hover:bg-stone-50/30">
-                  <span className="flex h-14 w-14 items-center justify-center rounded-full bg-stone-100/80 text-[var(--muted)]">
+                <label className="flex cursor-pointer flex-col items-center gap-5 rounded-[0.5rem] border-2 border-dashed border-stone-200 bg-white p-10 transition hover:border-stone-300/80 hover:bg-stone-50/30">
+                  <span className="flex h-14 w-14 items-center justify-center rounded-full bg-stone-100 text-stone-500">
                     <CameraIcon />
                   </span>
-                  <span className="font-medium text-[var(--foreground)]">
+                  <span className="font-medium text-[#1a1918]">
                     {t("choosePhotoDesc")}
                   </span>
-                  <span className="text-center text-sm text-[var(--muted)] leading-relaxed">
+                  <span className="text-center text-sm text-stone-500 leading-relaxed">
                     {t("photoFormatHint")}
                   </span>
                   <input
@@ -451,7 +451,7 @@ export default function Home() {
                   />
                 </label>
                 {loading && (
-                  <p className="mt-5 text-center text-sm text-[var(--muted)]">
+                  <p className="mt-5 text-center text-sm text-stone-500">
                     {t("readingImage")}
                   </p>
                 )}
@@ -484,15 +484,15 @@ function SavedList({
       <button
         type="button"
         onClick={onBack}
-        className="mb-5 text-sm text-[var(--muted)] hover:text-[var(--foreground)]"
+        className="mb-5 text-sm text-stone-500 hover:text-[#1a1918]"
       >
         ← {t("back")}
       </button>
-      <h2 className="mb-6 text-xl font-medium tracking-tight text-[var(--foreground)]">
+      <h2 className="mb-6 text-xl font-medium tracking-tight text-[#1a1918]">
         {t("savedListTitle")}
       </h2>
       {list.length === 0 ? (
-        <p className="rounded-[0.5rem] border border-[var(--border)] bg-white p-8 text-center text-[var(--muted)] leading-relaxed">
+        <p className="rounded-[0.5rem] border border-stone-200 bg-white p-8 text-center text-stone-500 leading-relaxed">
           {t("noSavedRecipes")}
         </p>
       ) : (
@@ -502,16 +502,16 @@ function SavedList({
             return (
               <li
                 key={item.id}
-                className="flex items-center justify-between gap-3 rounded-[0.5rem] border border-[var(--border)] bg-white px-4 py-3"
+                className="flex items-center justify-between gap-3 rounded-[0.5rem] border border-stone-200 bg-white px-4 py-3"
               >
                 <button
                   type="button"
                   onClick={() => onOpen(item)}
-                  className="min-w-0 flex-1 text-left font-medium text-[var(--foreground)] hover:text-stone-600"
+                  className="min-w-0 flex-1 text-left font-medium text-[#1a1918] hover:text-stone-600"
                 >
                   {item.name}
                 </button>
-                <span className="shrink-0 text-sm text-[var(--muted)]">
+                <span className="shrink-0 text-sm text-stone-500">
                   {item.isPermanent ? t("permanent") : t("expiresInDays", { days: days ?? 0 })}
                 </span>
                 <button
@@ -520,7 +520,7 @@ function SavedList({
                     e.stopPropagation();
                     onDelete(item.id);
                   }}
-                  className="shrink-0 rounded p-1.5 text-[var(--muted)] hover:bg-stone-100 hover:text-red-700/90"
+                  className="shrink-0 rounded p-1.5 text-stone-500 hover:bg-stone-100 hover:text-red-700/90"
                   aria-label={t("removeFromSavedAria")}
                 >
                   <TrashIcon />

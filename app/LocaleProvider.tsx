@@ -49,14 +49,14 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== "undefined") {
       localStorage.setItem(LOCALE_STORAGE_KEY, next);
       document.documentElement.lang =
-        next === "zh" ? "zh-Hans" : next === "de" ? "de" : next === "ko" ? "ko" : "en";
+        next === "zh" ? "zh-Hant" : next === "de" ? "de" : next === "ko" ? "ko" : "en";
     }
   }, []);
 
   useEffect(() => {
     if (!mounted) return;
     document.documentElement.lang =
-      locale === "zh" ? "zh-Hans" : locale === "de" ? "de" : locale === "ko" ? "ko" : "en";
+      locale === "zh" ? "zh-Hant" : locale === "de" ? "de" : locale === "ko" ? "ko" : "en";
   }, [mounted, locale]);
 
   const messages = getMessages(locale);

@@ -5,7 +5,7 @@ export type Locale = "en" | "de" | "zh" | "ko";
 export const LOCALES: { value: Locale; label: string }[] = [
   { value: "en", label: "English" },
   { value: "de", label: "Deutsch" },
-  { value: "zh", label: "中文" },
+  { value: "zh", label: "繁體中文" },
   { value: "ko", label: "한국어" },
 ];
 
