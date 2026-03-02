@@ -50,5 +50,6 @@
   "introBody": "Zwischen Kochbuchstapeln und werbevollen Rezeptseiten ist das Schwerste am Kochen oft, das Rezept zu finden. Recipe Slate macht aus jedem Rezept-Link – oder einem Foto einer Kochbuchseite – ein klares, kochbares Format.",
   "introBullet1": "Import von einer Rezept-URL",
   "introBullet2": "Kochbuchfoto aufnehmen oder hochladen",
-  "introBullet3": "Zutaten, Schritte und Einkaufsliste – ohne den Rest"
+  "introBullet3": "Zutaten, Schritte und Einkaufsliste – ohne den Rest",
+  "urlPaywalled": "Dieser Link funktioniert nicht, weil die Seite kostenpflichtig oder nur mit Abo zugänglich ist. Rezepte von dort können wir nicht importieren. Bitte nimm eine andere Rezept-URL."
 }

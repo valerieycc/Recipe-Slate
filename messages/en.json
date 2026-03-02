@@ -45,5 +45,6 @@
   "logInToSync": "Log in to sync your recipes across devices",
   "signInTitle": "Sign in",
   "signUpTitle": "Create account",
-  "authError": "Could not sign in. Try again.","introTagline": "Your kitchen shouldn't be full of browser tabs","introBody": "Between stacks of cookbooks and ad-filled recipe pages, the hardest part of cooking is finding the actual recipe. Recipe Slate turns any recipe link—or a photo of a cookbook page—into a clean, cookable format.","introBullet1": "Import from a recipe URL","introBullet2": "Snap or upload a cookbook photo","introBullet3": "Get Ingredients, Steps, and a Shopping List—without the noise"
+  "authError": "Could not sign in. Try again.","introTagline": "Your kitchen shouldn't be full of browser tabs","introBody": "Between stacks of cookbooks and ad-filled recipe pages, the hardest part of cooking is finding the actual recipe. Recipe Slate turns any recipe link—or a photo of a cookbook page—into a clean, cookable format.","introBullet1": "Import from a recipe URL","introBullet2": "Snap or upload a cookbook photo","introBullet3": "Get Ingredients, Steps, and a Shopping List—without the noise",
+  "urlPaywalled": "This URL doesn't work because the site is paywalled or subscription-only. We can't import recipes from it. Try a different recipe URL."
 }

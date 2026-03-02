@@ -10,7 +10,10 @@ export async function fallbackRecipeFromUrl(url: string): Promise<Recipe | null>
     },
     signal: AbortSignal.timeout(15000),
   });
-  if (!res.ok) return null;
+  if (!res.ok) {
+    if (res.status === 402) throw new Error("PAYMENT_REQUIRED");
+    return null;
+  }
   const html = await res.text();
   const $ = cheerio.load(html);
 

@@ -188,7 +188,10 @@ export default function Home() {
         body: JSON.stringify({ url: urlInput.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed to load recipe");
+      if (!res.ok) {
+        const msg = data.error === "PAYWALLED" ? t("urlPaywalled") : (data.error ?? "Failed to load recipe");
+        throw new Error(msg);
+      }
       setRecipe(data);
       addToRecentMaybe(data);
       setCurrentSaved(null);

@@ -19,20 +19,34 @@ export async function POST(request: Request) {
       data = await getRecipeData(url);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "";
+      if (msg.includes("402") || msg.includes("PAYMENT_REQUIRED")) {
+        return NextResponse.json({ error: "PAYWALLED" }, { status: 422 });
+      }
       if (msg.includes("not valid") || msg.includes("Recipe")) {
         // Try fallback: fetch page and parse JSON-LD / microdata ourselves
-        const fallback = await fallbackRecipeFromUrl(url);
-        if (fallback) {
-          return NextResponse.json(fallback);
+        try {
+          const fallback = await fallbackRecipeFromUrl(url);
+          if (fallback) return NextResponse.json(fallback);
+        } catch (fallbackErr) {
+          const fm = fallbackErr instanceof Error ? fallbackErr.message : "";
+          if (fm === "PAYMENT_REQUIRED" || fm.includes("402")) {
+            return NextResponse.json({ error: "PAYWALLED" }, { status: 422 });
+          }
         }
       }
       throw err;
     }
 
     if (!data) {
-      const fallback = await fallbackRecipeFromUrl(url);
-      if (fallback) {
-        return NextResponse.json(fallback);
+      try {
+        const fallback = await fallbackRecipeFromUrl(url);
+        if (fallback) return NextResponse.json(fallback);
+      } catch (fallbackErr) {
+        const fm = fallbackErr instanceof Error ? fallbackErr.message : "";
+        if (fm === "PAYMENT_REQUIRED" || fm.includes("402")) {
+          return NextResponse.json({ error: "PAYWALLED" }, { status: 422 });
+        }
+        throw fallbackErr;
       }
       return NextResponse.json(
         { error: "No recipe data found at this URL" },
@@ -64,6 +78,9 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error("Recipe URL scrape error:", err);
     const msg = err instanceof Error ? err.message : "Failed to scrape recipe";
+    if (msg.includes("402") || msg.includes("PAYMENT_REQUIRED")) {
+      return NextResponse.json({ error: "PAYWALLED" }, { status: 422 });
+    }
     const isValidation = msg.includes("not valid") || msg.includes("Recipe is not valid");
     return NextResponse.json(
       {
