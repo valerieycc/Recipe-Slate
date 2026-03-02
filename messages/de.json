@@ -51,5 +51,7 @@
   "introBullet1": "Import von einer Rezept-URL",
   "introBullet2": "Kochbuchfoto aufnehmen oder hochladen",
   "introBullet3": "Zutaten, Schritte und Einkaufsliste – ohne den Rest",
-  "urlPaywalled": "Dieser Link funktioniert nicht, weil die Seite kostenpflichtig oder nur mit Abo zugänglich ist. Rezepte von dort können wir nicht importieren. Bitte nimm eine andere Rezept-URL."
+  "urlPaywalled": "Dieser Link funktioniert nicht, weil die Seite kostenpflichtig oder nur mit Abo zugänglich ist. Rezepte von dort können wir nicht importieren. Bitte nimm eine andere Rezept-URL.",
+  "urlNoRecipeData": "Unter dieser URL wurde kein Rezept gefunden. Die Seite enthält möglicherweise keine strukturierten Rezeptdaten, oder wir konnten sie nicht auslesen.",
+  "urlImportFailed": "Beim Import ist etwas schiefgelaufen. Bitte erneut versuchen oder eine andere URL verwenden."
 }

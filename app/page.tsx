@@ -189,7 +189,15 @@ export default function Home() {
       });
       const data = await res.json();
       if (!res.ok) {
-        const msg = data.error === "PAYWALLED" ? t("urlPaywalled") : (data.error ?? "Failed to load recipe");
+        const errorCode = data.errorCode ?? (data.error === "PAYWALLED" ? "PAYWALLED" : null);
+        const msg =
+          errorCode === "PAYWALLED"
+            ? t("urlPaywalled")
+            : errorCode === "NO_RECIPE_DATA"
+              ? t("urlNoRecipeData")
+              : errorCode === "IMPORT_FAILED"
+                ? t("urlImportFailed")
+                : (data.error ?? "Failed to load recipe");
         throw new Error(msg);
       }
       setRecipe(data);
@@ -725,7 +733,7 @@ export default function Home() {
                     type="url"
                     value={urlInput}
                     onChange={(e) => setUrlInput(e.target.value)}
-                    placeholder="https://cooking.nytimes.com/recipes/..."
+                    placeholder="https://www.seriouseats.com/..."
                     className="w-full rounded-md border border-stone-200 bg-white px-4 py-3 text-[#1a1918] placeholder:text-stone-500 focus:border-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-400/50"
                     autoFocus
                   />
