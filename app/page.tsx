@@ -39,6 +39,9 @@ export default function Home() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authTab, setAuthTab] = useState<"signin" | "signup">("signin");
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
   const [authError, setAuthError] = useState<string | null>(null);
 
   const fetchSavedFromServer = useCallback(async () => {
@@ -399,23 +402,30 @@ export default function Home() {
             </button>
             {!authLoading && (
               user ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    fetch("/api/auth/sign-out", { method: "POST" }).then(() => {
-                      setUser(null);
-                      setSavedList(getSavedRecipes());
-                      setRecentList(getRecentRecipes());
-                    });
-                  }}
-                  className="rounded-md px-3 py-1.5 text-sm text-stone-500 hover:bg-stone-200/50 hover:text-[#1a1918]"
-                >
-                  {t("signOut")}
-                </button>
+                <div className="flex items-center gap-2">
+                  {user.email && (
+                    <span className="max-w-[140px] truncate text-sm text-stone-500" title={user.email}>
+                      {user.email}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      fetch("/api/auth/sign-out", { method: "POST" }).then(() => {
+                        setUser(null);
+                        setSavedList(getSavedRecipes());
+                        setRecentList(getRecentRecipes());
+                      });
+                    }}
+                    className="rounded-md px-3 py-1.5 text-sm text-stone-500 hover:bg-stone-200/50 hover:text-[#1a1918]"
+                  >
+                    {t("signOut")}
+                  </button>
+                </div>
               ) : (
                 <button
                   type="button"
-                  onClick={() => { setAuthModalOpen(true); setAuthError(null); }}
+                  onClick={() => { setAuthModalOpen(true); setAuthError(null); setAuthTab("signin"); setAuthEmail(""); setAuthPassword(""); }}
                   className="rounded-md px-3 py-1.5 text-sm text-stone-500 hover:bg-stone-200/50 hover:text-[#1a1918]"
                 >
                   {t("signIn")}
@@ -439,29 +449,79 @@ export default function Home() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40" aria-hidden onClick={() => setAuthModalOpen(false)} />
           <div className="relative w-full max-w-sm rounded-lg border border-stone-200 bg-white p-6 shadow-lg">
+            <div className="mb-4 flex gap-2">
+              <button
+                type="button"
+                onClick={() => { setAuthTab("signin"); setAuthError(null); }}
+                className={`rounded px-3 py-1.5 text-sm font-medium ${authTab === "signin" ? "bg-stone-200 text-[#1a1918]" : "text-stone-500 hover:bg-stone-100"}`}
+              >
+                {t("signInTitle")}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setAuthTab("signup"); setAuthError(null); }}
+                className={`rounded px-3 py-1.5 text-sm font-medium ${authTab === "signup" ? "bg-stone-200 text-[#1a1918]" : "text-stone-500 hover:bg-stone-100"}`}
+              >
+                {t("signUpTitle")}
+              </button>
+            </div>
             <p className="mb-4 text-sm text-stone-500">{t("logInToSync")}</p>
             {authError && (
               <p className="mb-3 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">{authError}</p>
             )}
-            <button
-              type="button"
-              onClick={async () => {
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
                 setAuthError(null);
-                const res = await fetch("/api/auth/sign-in-anonymous", { method: "POST" });
+                const url = authTab === "signin" ? "/api/auth/sign-in" : "/api/auth/sign-up";
+                const res = await fetch(url, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ email: authEmail.trim(), password: authPassword }),
+                });
                 const data = await res.json().catch(() => ({}));
                 if (!res.ok) {
-                  setAuthError(data.error ?? t("authError"));
+                  const msg = data.error === "Auth not configured" ? t("authNotConfigured") : (data.error ?? t("authError"));
+                  setAuthError(msg);
                   return;
                 }
                 setAuthModalOpen(false);
-                setUser(data.user ?? { id: "" });
+                setUser(data.user ?? { id: "", email: authEmail.trim() });
                 fetchSavedFromServer();
                 fetchRecentFromServer();
               }}
-              className="w-full rounded bg-[#1a1918] px-4 py-2 text-sm font-medium text-[#f8f6f3] hover:opacity-90"
+              className="space-y-4"
             >
-              {t("signIn")}
-            </button>
+              <label className="block">
+                <span className="mb-1 block text-sm font-medium text-[#1a1918]">{t("email")}</span>
+                <input
+                  type="email"
+                  value={authEmail}
+                  onChange={(e) => setAuthEmail(e.target.value)}
+                  className="w-full rounded border border-stone-200 px-3 py-2 text-[#1a1918]"
+                  required
+                  autoComplete="email"
+                />
+              </label>
+              <label className="block">
+                <span className="mb-1 block text-sm font-medium text-[#1a1918]">{t("password")}</span>
+                <input
+                  type="password"
+                  value={authPassword}
+                  onChange={(e) => setAuthPassword(e.target.value)}
+                  className="w-full rounded border border-stone-200 px-3 py-2 text-[#1a1918]"
+                  required
+                  minLength={6}
+                  autoComplete={authTab === "signin" ? "current-password" : "new-password"}
+                />
+              </label>
+              <button
+                type="submit"
+                className="w-full rounded bg-[#1a1918] px-4 py-2 text-sm font-medium text-[#f8f6f3] hover:opacity-90"
+              >
+                {authTab === "signin" ? t("signInTitle") : t("signUpTitle")}
+              </button>
+            </form>
           </div>
         </div>
       )}

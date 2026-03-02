@@ -15,7 +15,7 @@ This is a [Next.js](https://nextjs.org) project: **Recipe Slate** — import rec
 3. Copy `.env.example` to `.env.local` and set:
    - `NEXT_PUBLIC_SUPABASE_URL` — Project URL from Supabase dashboard
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — anon/public key from API settings
-4. In Supabase **Authentication → Providers**, enable **Anonymous sign-ins** so users can log in with one click (no email or password).
+4. In Supabase **Authentication → Providers**, enable **Email** so users can sign up and log in with email and password. (Turn off **Anonymous sign-ins** if you no longer need it.)
 
 First, run the development server:
 
