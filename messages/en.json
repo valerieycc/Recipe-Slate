@@ -11,7 +11,7 @@
   "importRecipe": "Import recipe",
   "loading": "Loading…",
   "translating": "Translating…",
-  "choosePhotoDesc": "Choose a photo of your cookbook",
+  "choosePhotoDesc": "Upload a photo or take a picture",
   "photoFormatHint": "JPG or PNG. We'll extract text and try to split ingredients and steps.",
   "readingImage": "Reading image… this may take a few seconds.",
   "ingredients": "Ingredients",

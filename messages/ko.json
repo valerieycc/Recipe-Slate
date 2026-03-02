@@ -11,7 +11,7 @@
   "importRecipe": "레시피 가져오기",
   "loading": "불러오는 중…",
   "translating": "번역 중…",
-  "choosePhotoDesc": "요리책 사진 선택",
+  "choosePhotoDesc": "사진 업로드 또는 촬영",
   "photoFormatHint": "JPG 또는 PNG. 텍스트를 추출하고 재료와 단계를 구분합니다.",
   "readingImage": "이미지 인식 중… 몇 초 걸릴 수 있습니다.",
   "ingredients": "재료",

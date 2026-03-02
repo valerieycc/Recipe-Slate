@@ -11,7 +11,7 @@
   "importRecipe": "匯入食譜",
   "loading": "載入中…",
   "translating": "翻譯中…",
-  "choosePhotoDesc": "選擇食譜書照片",
+  "choosePhotoDesc": "上傳照片或拍照",
   "photoFormatHint": "支援 JPG 或 PNG，將擷取文字並嘗試區分食材與步驟。",
   "readingImage": "正在辨識圖片… 可能需要幾秒鐘。",
   "ingredients": "食材",
