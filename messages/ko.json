@@ -14,6 +14,9 @@
   "choosePhotoDesc": "사진 업로드 또는 촬영",
   "photoFormatHint": "JPG 또는 PNG. 텍스트를 추출하고 재료와 단계를 구분합니다.",
   "readingImage": "이미지 인식 중… 몇 초 걸릴 수 있습니다.",
+  "photoStepUploading": "업로드 중…",
+  "photoStepReading": "이미지 읽는 중…",
+  "photoStepExtracting": "레시피 추출 중…",
   "ingredients": "재료",
   "steps": "단계",
   "prep": "준비",
@@ -22,6 +25,9 @@
   "serves": "인분",
   "from": "출처",
   "note": "참고",
+  "editRecipe": "편집",
+  "saveEdits": "저장",
+  "cancel": "취소",
   "saveRecipe": "레시피 저장",
   "saveFor30Days": "30일간 저장",
   "savePermanently": "영구 저장",
@@ -53,5 +59,10 @@
   "introBullet3": "재료, 단계, 쇼핑 리스트—잡음 없이",
   "urlPaywalled": "이 링크는 해당 사이트가 유료·구독 전용이라 사용할 수 없습니다. 해당 사이트에서는 레시피를 가져올 수 없어요. 다른 레시피 링크를 사용해 보세요.",
   "urlNoRecipeData": "이 주소에서 레시피 정보를 찾을 수 없어요. 해당 사이트에 구조화된 레시피가 없거나 읽을 수 없을 수 있습니다.",
-  "urlImportFailed": "레시피를 가져오는 중 문제가 생겼어요. 다시 시도하거나 다른 링크를 사용해 보세요."
+  "urlImportFailed": "레시피를 가져오는 중 문제가 생겼어요. 다시 시도하거나 다른 링크를 사용해 보세요.",
+  "reparseText": "텍스트 다시 구문 분석",
+  "reparseTextHint": "OCR이 잘못 인식한 부분을 수정한 뒤 '다시 구문 분석' 또는 'AI로 수정'을 누르세요.",
+  "reparseTextPlaceholder": "레시피 텍스트를 붙여 넣거나 수정하세요…",
+  "reparseButton": "다시 구문 분석",
+  "fixWithAi": "AI로 수정"
 }

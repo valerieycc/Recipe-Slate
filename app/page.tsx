@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type { Recipe } from "@/lib/types";
 import type { SavedRecipe, RecentEntry } from "@/lib/storage";
 import {
@@ -31,6 +31,9 @@ export default function Home() {
   const [recentList, setRecentList] = useState<RecentEntry[]>([]);
   const [urlInput, setUrlInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [photoProgress, setPhotoProgress] = useState(0);
+  const [photoStep, setPhotoStep] = useState(0);
+  const photoProgressRef = useRef<{ progress: ReturnType<typeof setInterval>; step: ReturnType<typeof setInterval> } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saveMenuOpen, setSaveMenuOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
@@ -112,6 +115,7 @@ export default function Home() {
           ingredients: recipe.ingredients,
           instructions: recipe.instructions,
           notes: recipe.notes,
+          ingredientSections: recipe.ingredientSections,
         },
         target: locale,
       }),
@@ -126,6 +130,7 @@ export default function Home() {
             ingredients: data.recipe.ingredients ?? recipe.ingredients,
             instructions: data.recipe.instructions ?? recipe.instructions,
             notes: data.recipe.notes ?? recipe.notes,
+            ingredientSections: data.recipe.ingredientSections ?? recipe.ingredientSections,
           });
         } else {
           setTranslatedRecipe(null);
@@ -217,24 +222,83 @@ export default function Home() {
     if (!file) return;
     setError(null);
     setLoading(true);
+    setPhotoProgress(0);
+    setPhotoStep(0);
+    photoProgressRef.current = {
+      progress: setInterval(() => {
+        setPhotoProgress((p) => Math.min(p + 2, 90));
+      }, 500),
+      step: setInterval(() => {
+        setPhotoStep((s) => (s + 1) % 3);
+      }, 5000),
+    };
     try {
+      let blob: Blob = file;
+      if (file.type.startsWith("image/") && typeof createImageBitmap === "function") {
+        try {
+          const bitmap = await createImageBitmap(file);
+          const max = 1024;
+          let { width, height } = bitmap;
+          if (width > max || height > max) {
+            if (width > height) {
+              height = Math.round((height * max) / width);
+              width = max;
+            } else {
+              width = Math.round((width * max) / height);
+              height = max;
+            }
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(bitmap, 0, 0, width, height);
+            blob = await new Promise<Blob>((resolve, reject) => {
+              canvas.toBlob(
+                (b) => (b ? resolve(b) : reject(new Error("toBlob failed"))),
+                "image/jpeg",
+                0.85
+              );
+            });
+          }
+          bitmap.close();
+        } catch {
+          // keep original file if resize fails
+        }
+      }
+
       const form = new FormData();
-      form.append("image", file);
+      form.append("image", blob, file.name);
       const res = await fetch("/api/recipe/photo", {
         method: "POST",
         body: form,
+        signal: AbortSignal.timeout(60_000),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed to read recipe");
+      if (!res.ok) throw new Error(data.error ?? "Failed to read recipe from photo");
       setRecipe(data);
       addToRecentMaybe(data);
       setCurrentSaved(null);
       setView("recipe");
       setMode("choose");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      if (err instanceof Error && (err.name === "TimeoutError" || err.name === "AbortError")) {
+        setError("Photo took too long to process. Try again or use a smaller image.");
+      } else {
+        setError(err instanceof Error ? err.message : "Something went wrong");
+      }
     } finally {
-      setLoading(false);
+      if (photoProgressRef.current) {
+        clearInterval(photoProgressRef.current.progress);
+        clearInterval(photoProgressRef.current.step);
+        photoProgressRef.current = null;
+      }
+      setPhotoProgress(100);
+      setTimeout(() => {
+        setLoading(false);
+        setPhotoProgress(0);
+      }, 400);
     }
     e.target.value = "";
   }
@@ -580,7 +644,13 @@ export default function Home() {
                 {t("translating")}
               </p>
             )}
-            <RecipeView recipe={translatedRecipe ?? recipe!} />
+            <RecipeView
+              recipe={translatedRecipe ?? recipe!}
+              onRecipeChange={(newRecipe) => {
+                setRecipe(newRecipe);
+                setTranslatedRecipe(null);
+              }}
+            />
             <div className="mt-8 flex flex-wrap items-center gap-4 border-t border-stone-200/60 pt-6">
               {isSaved ? (
                 <>
@@ -776,9 +846,24 @@ export default function Home() {
                   />
                 </label>
                 {loading && (
-                  <p className="mt-5 text-center text-sm text-stone-500">
-                    {t("readingImage")}
-                  </p>
+                  <div className="mt-5 space-y-3">
+                    <p className="text-center text-sm font-medium text-[#1a1918]">
+                      {photoStep === 0
+                        ? t("photoStepUploading")
+                        : photoStep === 1
+                          ? t("photoStepReading")
+                          : t("photoStepExtracting")}
+                    </p>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-stone-200">
+                      <div
+                        className="h-full rounded-full bg-[#1a1918] transition-[width] duration-300 ease-out"
+                        style={{ width: `${photoProgress}%` }}
+                      />
+                    </div>
+                    <p className="text-center text-xs text-stone-500">
+                      {Math.round(photoProgress)}%
+                    </p>
+                  </div>
                 )}
               </div>
             )}

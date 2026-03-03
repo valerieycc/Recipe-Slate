@@ -14,6 +14,9 @@
   "choosePhotoDesc": "Upload a photo or take a picture",
   "photoFormatHint": "JPG or PNG. We'll extract text and try to split ingredients and steps.",
   "readingImage": "Reading image… this may take a few seconds.",
+  "photoStepUploading": "Uploading…",
+  "photoStepReading": "Reading image…",
+  "photoStepExtracting": "Extracting recipe…",
   "ingredients": "Ingredients",
   "steps": "Steps",
   "prep": "Prep",
@@ -22,6 +25,9 @@
   "serves": "Serves",
   "from": "From",
   "note": "Note",
+  "editRecipe": "Edit",
+  "saveEdits": "Save",
+  "cancel": "Cancel",
   "saveRecipe": "Save recipe",
   "saveFor30Days": "Save for 30 days",
   "savePermanently": "Save permanently",
@@ -48,5 +54,10 @@
   "authError": "Could not sign in. Try again.","introTagline": "Your kitchen shouldn't be full of browser tabs","introBody": "Between stacks of cookbooks and ad-filled recipe pages, the hardest part of cooking is finding the actual recipe. Recipe Slate turns any recipe link—or a photo of a cookbook page—into a clean, cookable format.","introBullet1": "Import from a recipe URL","introBullet2": "Snap or upload a cookbook photo","introBullet3": "Get Ingredients, Steps, and a Shopping List—without the noise",
   "urlPaywalled": "This URL doesn't work because the site is paywalled or subscription-only. We can't import recipes from it. Try a different recipe URL.",
   "urlNoRecipeData": "No recipe data found at this URL. The site may not include structured recipe data, or we couldn't read it.",
-  "urlImportFailed": "Something went wrong importing this recipe. Try again or use a different URL."
+  "urlImportFailed": "Something went wrong importing this recipe. Try again or use a different URL.",
+  "reparseText": "Re-parse text",
+  "reparseTextHint": "Edit the text below if OCR made mistakes, then Re-parse or use Fix with AI.",
+  "reparseTextPlaceholder": "Paste or edit the recipe text…",
+  "reparseButton": "Re-parse",
+  "fixWithAi": "Fix with AI"
 }

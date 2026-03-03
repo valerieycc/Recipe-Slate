@@ -3,7 +3,7 @@ This is a [Next.js](https://nextjs.org) project: **Recipe Slate** — import rec
 ## Recipe Slate
 
 - **Import from URL** — Paste a recipe link; the app scrapes structured data (JSON-LD / schema.org) and shows ingredients and steps.
-- **Import from photo** — Upload a photo of a cookbook page; OCR extracts text and parses it into ingredients and steps.
+- **Import from photo** — Upload a photo of a cookbook page; an OpenAI vision model reads the image and returns a structured recipe (title, ingredients, steps). Requires `OPENAI_API_KEY`.
 - **Recipe view** — Tabbed layout (Ingredients | Steps), optional image, prep/cook time and servings. Works on desktop and mobile.
 - **Saved recipes** — Save for 30 days or permanently. When you **log in**, data is stored on the server and syncs across devices; when signed out, data stays in the browser (localStorage).
 - **Recently browsed** — Automatic history of viewed recipes; same server/local behavior as saved when logged in.
@@ -16,6 +16,12 @@ This is a [Next.js](https://nextjs.org) project: **Recipe Slate** — import rec
    - `NEXT_PUBLIC_SUPABASE_URL` — Project URL from Supabase dashboard
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — anon/public key from API settings
 4. In Supabase **Authentication → Providers**, enable **Email** so users can sign up and log in with email and password. (Turn off **Anonymous sign-ins** if you no longer need it.)
+
+### Photo import (OpenAI Vision)
+
+Photo import uses OpenAI’s vision model to read the image and extract the recipe. Set in `.env.local`:
+
+- `OPENAI_API_KEY` — Your [OpenAI API key](https://platform.openai.com/api-keys). The app uses `gpt-4o-mini` with vision to extract title, ingredients, and steps from a photo. If unset, photo import returns an error.
 
 First, run the development server:
 

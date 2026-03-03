@@ -20,6 +20,7 @@ function detectSourceCode(text: string): string {
   if (/[\uac00-\ud7af]/.test(text)) return "ko";
   if (/[\u0400-\u04ff]/.test(text)) return "ru";
   if (/[\u0600-\u06ff]/.test(text)) return "ar";
+  if (/[äöüßÄÖÜ]/.test(text) || /\b(der|die|das|und|für|mit|von|auf|ein|eine|ist|sind|werden|kochen|rezept|zutaten|zubereitung|salz|pfeffer|öl|mehl|butter)\b/i.test(text)) return "de";
   return "en";
 }
 
@@ -114,12 +115,16 @@ function likelyNeedsTranslation(text: string, target: Locale): boolean {
   const hasCJK = /[\u4e00-\u9fff\u3100-\u312f\uac00-\ud7af]/.test(text);
   const hasCyrillic = /[\u0400-\u04ff]/.test(text);
   const hasArabic = /[\u0600-\u06ff]/.test(text);
-  if (target === "en" && (hasCJK || hasCyrillic || hasArabic)) return true;
+  const sourceCode = detectSourceCode(text);
+  if (target === "en" && (hasCJK || hasCyrillic || hasArabic || sourceCode === "de")) return true;
   if (target === "de" && (hasCJK || hasCyrillic || hasArabic)) return true;
+  if ((target === "zh" || target === "ko") && (hasCJK || hasCyrillic || hasArabic || sourceCode === "de")) return true;
   if (target === "zh" || target === "ko") {
     const mainlyLatin = /^[\x00-\x7f\s\u00c0-\u024f.,;:!?'"-]+$/u.test(text.trim());
     if (mainlyLatin && text.trim().length > 20) return true;
   }
+  if (sourceCode !== "en" && target === "en") return true;
+  if (sourceCode !== target && sourceCode !== "en") return true;
   return false;
 }
 
@@ -128,7 +133,7 @@ export async function POST(request: Request) {
     const body = (await request.json()) as {
       text?: string;
       target?: Locale;
-      recipe?: Pick<Recipe, "name" | "ingredients" | "instructions" | "notes">;
+      recipe?: Pick<Recipe, "name" | "ingredients" | "instructions" | "notes" | "ingredientSections">;
     };
     const target = body.target ?? "en";
     const code = LOCALE_TO_CODE[target];
@@ -138,8 +143,11 @@ export async function POST(request: Request) {
     const apiKey = process.env.LIBRETRANSLATE_API_KEY;
 
     if (body.recipe) {
-      const { name, ingredients, instructions, notes } = body.recipe;
-      const sample = [name, ingredients?.[0] ?? "", instructions?.[0] ?? ""].join(" ");
+      const { name, ingredients, instructions, notes, ingredientSections } = body.recipe;
+      const firstSectionSample = ingredientSections?.[0]
+        ? `${ingredientSections[0].title} ${ingredientSections[0].items?.[0] ?? ""}`
+        : "";
+      const sample = [name, ingredients?.[0] ?? "", firstSectionSample, instructions?.[0] ?? ""].join(" ");
       if (!likelyNeedsTranslation(sample, target)) {
         return NextResponse.json({
           recipe: {
@@ -147,10 +155,42 @@ export async function POST(request: Request) {
             ingredients: body.recipe.ingredients ?? [],
             instructions: body.recipe.instructions ?? [],
             notes: body.recipe.notes,
+            ingredientSections: body.recipe.ingredientSections,
           },
         });
       }
       const sourceCode = detectSourceCode(sample);
+
+      if (ingredientSections?.length) {
+        const translatedSections = await Promise.all(
+          ingredientSections.map(async (section) => {
+            const [translatedTitle, translatedItems] = await Promise.all([
+              section.title ? translateText(section.title, code, sourceCode, apiKey) : Promise.resolve(section.title),
+              section.items?.length
+                ? translateLines(section.items, code, sourceCode, apiKey)
+                : Promise.resolve(section.items ?? []),
+            ]);
+            return { title: translatedTitle || section.title, items: translatedItems };
+          })
+        );
+        const flatIngredients = translatedSections.flatMap((s) => s.items);
+        const [translatedName, instructionsBlock, translatedNotes] = await Promise.all([
+          name ? translateText(name, code, sourceCode, apiKey) : Promise.resolve(""),
+          instructions?.length
+            ? translateLines(instructions, code, sourceCode, apiKey)
+            : Promise.resolve(instructions ?? []),
+          notes ? translateText(notes, code, sourceCode, apiKey) : Promise.resolve(undefined),
+        ]);
+        return NextResponse.json({
+          recipe: {
+            name: translatedName || name,
+            ingredients: flatIngredients,
+            instructions: instructionsBlock.length ? instructionsBlock : instructions ?? [],
+            notes: translatedNotes ?? notes,
+            ingredientSections: translatedSections,
+          },
+        });
+      }
 
       const [translatedName, ingredientsBlock, instructionsBlock, translatedNotes] =
         await Promise.all([
@@ -169,6 +209,7 @@ export async function POST(request: Request) {
           ingredients: ingredientsBlock.length ? ingredientsBlock : ingredients ?? [],
           instructions: instructionsBlock.length ? instructionsBlock : instructions ?? [],
           notes: translatedNotes ?? notes,
+          ingredientSections: body.recipe.ingredientSections,
         },
       });
     }

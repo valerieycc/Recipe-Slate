@@ -1,141 +1,91 @@
 import { NextResponse } from "next/server";
-import Tesseract from "tesseract.js";
+import sharp from "sharp";
 import type { Recipe } from "@/lib/types";
 
-function parseOcrIntoRecipe(fullText: string): Recipe {
-  const text = fullText.trim();
-  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+export const maxDuration = 60;
 
-  const title =
-    lines.find((l) => l.length > 2 && l.length < 120 && !/^\d+[\.\)]/.test(l)) ??
-    "Recipe from photo";
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const MAX_EDGE = 1024;
 
-  const lower = text.toLowerCase();
-  const hasIngredients =
-    lower.includes("ingredient") ||
-    lower.includes("ingredients") ||
-    lower.includes("for the");
-  const hasInstructions =
-    lower.includes("instruction") ||
-    lower.includes("directions") ||
-    lower.includes("method") ||
-    lower.includes("steps") ||
-    lower.includes("preparation");
+const VISION_PROMPT = `You are a recipe extractor. Look at this image of a recipe (cookbook page, screenshot, or photo). Extract the recipe into structured data.
 
-  let ingredients: string[] = [];
-  let instructions: string[] = [];
+Reply with ONLY a single JSON object, no markdown or explanation. Use EITHER the "sections" format OR the simple "ingredients" format:
 
-  if (hasIngredients || hasInstructions) {
-    const sections: { key: string; start: number }[] = [];
-    const markers = [
-      "ingredients",
-      "ingredient",
-      "for the",
-      "instructions",
-      "instruction",
-      "directions",
-      "direction",
-      "method",
-      "steps",
-      "preparation",
-    ];
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].toLowerCase();
-      for (const m of markers) {
-        if (line === m || line.startsWith(m + ":") || line.startsWith(m + " ")) {
-          sections.push({ key: m, start: i });
-          break;
-        }
-      }
-    }
-    sections.sort((a, b) => a.start - b.start);
+OPTION A – Recipe has multiple ingredient sections (e.g. "For the dumplings", "For the ragout", "For the sauce"):
+{
+  "name": "Recipe title",
+  "ingredientSections": [
+    { "title": "For the dumplings", "items": ["1 kg potatoes", "salt", "..."] },
+    { "title": "For the ragout", "items": ["1 onion", "600 g mushrooms", "..."] }
+  ],
+  "instructions": ["step 1", "step 2", ...]
+}
 
-    const ingMarkers = ["ingredients", "ingredient", "for the"];
-    const instMarkers = [
-      "instructions",
-      "instruction",
-      "directions",
-      "direction",
-      "method",
-      "steps",
-      "preparation",
-    ];
+OPTION B – Recipe has a single list of ingredients (no subsections):
+{
+  "name": "Recipe title",
+  "ingredients": ["ingredient 1", "ingredient 2", ...],
+  "instructions": ["step 1", "step 2", ...]
+}
 
-    let ingStart = -1;
-    let instStart = -1;
-    for (const s of sections) {
-      if (ingMarkers.some((m) => s.key.startsWith(m)) && ingStart === -1)
-        ingStart = s.start;
-      if (instMarkers.some((m) => s.key.startsWith(m)) && instStart === -1)
-        instStart = s.start;
-    }
+Rules:
+- name: Use the EXACT recipe title from the book or page when visible. Only use "Recipe from photo" when the title is truly unreadable or missing.
+- When the page has separate ingredient blocks with headings (e.g. "Für die Knödel", "Für das Ragout", "For the sauce"), use ingredientSections with a title and items array for each. Preserve the section titles from the image.
+- When there is only one ingredient list, use ingredients (array of strings). Include amounts and units. Preserve the language used in the image.
+- instructions: Array of strings. One string per step, in order. Keep steps clear and complete.
+- If the image is not a recipe or is unreadable, return: name "Recipe from photo", ingredients ["(Could not read ingredients)"], instructions ["(Could not read instructions)"].
+- Output only valid JSON.`;
 
-    if (ingStart >= 0) {
-      const end =
-        instStart >= 0 ? Math.min(instStart, lines.length) : lines.length;
-      ingredients = lines
-        .slice(ingStart + 1, end)
-        .filter(
-          (l) =>
-            l.length > 1 &&
-            (/\d|cup|tbsp|tsp|oz|lb|clove|pinch|salt|pepper|garlic|onion/i.test(
-              l
-            ) ||
-              /^[•\-\*]\s/.test(l) ||
-              /^\d+[\.\)]\s/.test(l))
-        );
-    }
-    if (instStart >= 0) {
-      instructions = lines
-        .slice(instStart + 1)
-        .filter(
-          (l) =>
-            l.length > 10 &&
-            (/^\d+[\.\)]\s/.test(l) ||
-              /^[•\-\*]\s/.test(l) ||
-              /^step\s/i.test(l) ||
-              l.length > 20)
-        );
-    }
-  }
+function isGenericTitle(name: string): boolean {
+  const n = name.trim().toLowerCase();
+  if (!n || n.length < 4) return true;
+  if (n === "recipe from photo" || n === "recipe from text") return true;
+  return false;
+}
 
-  if (ingredients.length === 0 && instructions.length === 0) {
-    const bulletLines = lines.filter(
-      (l) =>
-        /^[•\-\*]\s/.test(l) ||
-        /^\d+[\.\)]\s/.test(l) ||
-        /^\d+\./.test(l)
-    );
-    const firstNum = bulletLines.findIndex((l) => /^\d+[\.\)]\s/.test(l));
-    if (firstNum >= 0) {
-      instructions = bulletLines.slice(firstNum).filter((l) => l.length > 5);
-      ingredients = bulletLines.slice(0, firstNum).filter((l) => l.length > 2);
-    } else {
-      ingredients = lines.filter(
-        (l) =>
-          l.length > 2 &&
-          l.length < 120 &&
-          (/\d|cup|tbsp|tsp|oz|clove|salt|pepper/i.test(l) ||
-            /^[•\-\*]\s/.test(l))
-      );
-      instructions = lines.filter(
-        (l) =>
-          l.length > 25 &&
-          (/^\d+[\.\)]\s/.test(l) || /^step\s/i.test(l) || l.includes("."))
-      );
-    }
-  }
-
-  return {
-    name: title,
-    ingredients: ingredients.length ? ingredients : ["(Check photo for ingredients)"],
-    instructions: instructions.length
-      ? instructions
-      : ["(Check photo for instructions)"],
-  };
+async function suggestRecipeTitle(
+  ingredients: string[],
+  instructions: string[],
+  apiKey: string
+): Promise<string> {
+  const preview = [
+    "Ingredients:",
+    ingredients.slice(0, 8).join("\n"),
+    "Instructions:",
+    instructions.slice(0, 3).join(" "),
+  ].join("\n");
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "user",
+          content: `Suggest a short, descriptive recipe title (e.g. "Potato Dumplings with Mushroom Ragout" or "Herb Soup") based on this recipe. Reply with ONLY the title, no quotes or punctuation at the end.\n\n${preview.slice(0, 1500)}`,
+        },
+      ],
+      max_tokens: 60,
+      temperature: 0.3,
+    }),
+  });
+  if (!res.ok) return "";
+  const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+  const title = data?.choices?.[0]?.message?.content?.trim();
+  return title && title.length > 1 && title.length < 120 ? title : "";
 }
 
 export async function POST(request: Request) {
+  if (!OPENAI_API_KEY?.trim()) {
+    return NextResponse.json(
+      { error: "Photo import is not configured. Set OPENAI_API_KEY in your environment." },
+      { status: 503 }
+    );
+  }
+
   try {
     const formData = await request.formData();
     const file = formData.get("image") as File | null;
@@ -147,21 +97,121 @@ export async function POST(request: Request) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const {
-      data: { text },
-    } = await Tesseract.recognize(buffer, "eng", {
-      logger: () => {},
+
+    let imageBuffer: Buffer;
+    try {
+      const meta = await sharp(buffer).metadata();
+      const w = meta.width ?? 0;
+      const h = meta.height ?? 0;
+      if (w > MAX_EDGE || h > MAX_EDGE) {
+        imageBuffer = await sharp(buffer)
+          .resize(MAX_EDGE, MAX_EDGE, { fit: "inside", withoutEnlargement: true })
+          .jpeg({ quality: 85 })
+          .toBuffer();
+      } else {
+        imageBuffer = await sharp(buffer).jpeg({ quality: 85 }).toBuffer();
+      }
+    } catch {
+      imageBuffer = buffer;
+    }
+
+    const base64 = imageBuffer.toString("base64");
+    const dataUrl = `data:image/jpeg;base64,${base64}`;
+
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: VISION_PROMPT },
+              { type: "image_url", image_url: { url: dataUrl } },
+            ],
+          },
+        ],
+        max_tokens: 4096,
+        temperature: 0.2,
+      }),
     });
 
-    const recipe = parseOcrIntoRecipe(text ?? "");
+    if (!res.ok) {
+      const err = (await res.json().catch(() => ({}))) as { error?: { message?: string } };
+      return NextResponse.json(
+        { error: err?.error?.message ?? res.statusText ?? "Vision request failed" },
+        { status: res.status >= 500 ? 502 : 422 }
+      );
+    }
+
+    const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+    const content = data?.choices?.[0]?.message?.content?.trim();
+    if (!content) {
+      return NextResponse.json(
+        { error: "No response from AI" },
+        { status: 502 }
+      );
+    }
+
+    const cleaned = content.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+    const parsed = JSON.parse(cleaned) as {
+      name?: string;
+      ingredients?: string[];
+      ingredientSections?: { title?: string; items?: string[] }[];
+      instructions?: string[];
+    };
+
+    const ingredients: string[] = [];
+    let ingredientSections: { title: string; items: string[] }[] | undefined;
+
+    if (Array.isArray(parsed.ingredientSections) && parsed.ingredientSections.length > 0) {
+      ingredientSections = parsed.ingredientSections
+        .filter((s): s is { title?: string; items?: string[] } => s && typeof s === "object")
+        .map((s) => ({
+          title: typeof s.title === "string" ? s.title : "Ingredients",
+          items: Array.isArray(s.items) ? s.items.filter((x): x is string => typeof x === "string") : [],
+        }))
+        .filter((s) => s.items.length > 0);
+      for (const sec of ingredientSections) ingredients.push(...sec.items);
+    }
+    if (ingredients.length === 0 && Array.isArray(parsed.ingredients)) {
+      ingredients.push(...parsed.ingredients.filter((x): x is string => typeof x === "string"));
+    }
+    if (ingredients.length === 0) ingredients.push("(Could not read ingredients)");
+
+    const recipe: Recipe = {
+      name: typeof parsed.name === "string" ? parsed.name : "Recipe from photo",
+      ingredients,
+      instructions: Array.isArray(parsed.instructions)
+        ? parsed.instructions.filter((x): x is string => typeof x === "string")
+        : ["(Could not read instructions)"],
+    };
+    if (ingredientSections?.length) recipe.ingredientSections = ingredientSections;
+
+    if (isGenericTitle(recipe.name) && recipe.ingredients.length > 0 && recipe.instructions.length > 0) {
+      const suggested = await suggestRecipeTitle(
+        recipe.ingredients,
+        recipe.instructions,
+        OPENAI_API_KEY
+      );
+      if (suggested) recipe.name = suggested;
+    }
+
     return NextResponse.json(recipe);
   } catch (err) {
-    console.error("Recipe photo OCR error:", err);
+    console.error("Recipe photo vision error:", err);
+    if (err instanceof SyntaxError) {
+      return NextResponse.json(
+        { error: "AI returned invalid recipe format" },
+        { status: 502 }
+      );
+    }
     return NextResponse.json(
-      {
-        error:
-          err instanceof Error ? err.message : "Failed to extract recipe from image",
-      },
+      { error: err instanceof Error ? err.message : "Failed to extract recipe from image" },
       { status: 500 }
     );
   }

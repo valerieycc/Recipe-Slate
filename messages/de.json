@@ -14,6 +14,9 @@
   "choosePhotoDesc": "Foto hochladen oder aufnehmen",
   "photoFormatHint": "JPG oder PNG. Wir extrahieren den Text und gliedern Zutaten und Schritte.",
   "readingImage": "Bild wird ausgewertet… kann einige Sekunden dauern.",
+  "photoStepUploading": "Wird hochgeladen…",
+  "photoStepReading": "Bild wird gelesen…",
+  "photoStepExtracting": "Rezept wird extrahiert…",
   "ingredients": "Zutaten",
   "steps": "Schritte",
   "prep": "Vorbereitung",
@@ -22,6 +25,9 @@
   "serves": "Portionen",
   "from": "Quelle",
   "note": "Hinweis",
+  "editRecipe": "Bearbeiten",
+  "saveEdits": "Speichern",
+  "cancel": "Abbrechen",
   "saveRecipe": "Rezept speichern",
   "saveFor30Days": "30 Tage speichern",
   "savePermanently": "Dauerhaft speichern",
@@ -53,5 +59,10 @@
   "introBullet3": "Zutaten, Schritte und Einkaufsliste – ohne den Rest",
   "urlPaywalled": "Dieser Link funktioniert nicht, weil die Seite kostenpflichtig oder nur mit Abo zugänglich ist. Rezepte von dort können wir nicht importieren. Bitte nimm eine andere Rezept-URL.",
   "urlNoRecipeData": "Unter dieser URL wurde kein Rezept gefunden. Die Seite enthält möglicherweise keine strukturierten Rezeptdaten, oder wir konnten sie nicht auslesen.",
-  "urlImportFailed": "Beim Import ist etwas schiefgelaufen. Bitte erneut versuchen oder eine andere URL verwenden."
+  "urlImportFailed": "Beim Import ist etwas schiefgelaufen. Bitte erneut versuchen oder eine andere URL verwenden.",
+  "reparseText": "Text neu einlesen",
+  "reparseTextHint": "Text bei OCR-Fehlern anpassen, dann „Neu einlesen“ oder „Mit KI korrigieren“.",
+  "reparseTextPlaceholder": "Rezepttext einfügen oder bearbeiten …",
+  "reparseButton": "Neu einlesen",
+  "fixWithAi": "Mit KI korrigieren"
 }

@@ -14,6 +14,9 @@
   "choosePhotoDesc": "上傳照片或拍照",
   "photoFormatHint": "支援 JPG 或 PNG，將擷取文字並嘗試區分食材與步驟。",
   "readingImage": "正在辨識圖片… 可能需要幾秒鐘。",
+  "photoStepUploading": "上傳中…",
+  "photoStepReading": "正在辨識圖片…",
+  "photoStepExtracting": "正在擷取食譜…",
   "ingredients": "食材",
   "steps": "步驟",
   "prep": "準備",
@@ -22,6 +25,9 @@
   "serves": "份量",
   "from": "來源",
   "note": "備註",
+  "editRecipe": "編輯",
+  "saveEdits": "儲存",
+  "cancel": "取消",
   "saveRecipe": "儲存食譜",
   "saveFor30Days": "儲存 30 天",
   "savePermanently": "永久儲存",
@@ -53,5 +59,10 @@
   "introBullet3": "取得食材、步驟與購物清單——沒有多餘干擾",
   "urlPaywalled": "此連結無法使用，因為該網站為付費牆或訂閱制。我們無法從該站匯入食譜，請換一個食譜連結試試。",
   "urlNoRecipeData": "在此連結找不到食譜資料，該頁面可能沒有結構化食譜內容，或我們無法讀取。",
-  "urlImportFailed": "匯入食譜時發生錯誤，請再試一次或改用其他連結。"
+  "urlImportFailed": "匯入食譜時發生錯誤，請再試一次或改用其他連結。",
+  "reparseText": "重新解析文字",
+  "reparseTextHint": "若 OCR 有誤可編輯下方文字，再按「重新解析」或「用 AI 修正」。",
+  "reparseTextPlaceholder": "貼上或編輯食譜文字…",
+  "reparseButton": "重新解析",
+  "fixWithAi": "用 AI 修正"
 }

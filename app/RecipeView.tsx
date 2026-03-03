@@ -4,7 +4,13 @@ import type { Recipe } from "@/lib/types";
 import { useLocale } from "./LocaleProvider";
 import { RecipeShell } from "@/components/RecipeShell";
 
-export function RecipeView({ recipe }: { recipe: Recipe }) {
+export function RecipeView({
+  recipe,
+  onRecipeChange,
+}: {
+  recipe: Recipe;
+  onRecipeChange?: (recipe: Recipe) => void;
+}) {
   const { t } = useLocale();
-  return <RecipeShell recipe={recipe} t={t} />;
+  return <RecipeShell recipe={recipe} t={t} onRecipeChange={onRecipeChange} />;
 }

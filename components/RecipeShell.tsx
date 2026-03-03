@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import type { Recipe } from "@/lib/types";
 
@@ -9,10 +9,55 @@ type Tab = "ingredients" | "steps";
 type RecipeShellProps = {
   recipe: Recipe;
   t: (key: string, params?: Record<string, string | number>) => string;
+  onRecipeChange?: (recipe: Recipe) => void;
 };
 
-export function RecipeShell({ recipe, t }: RecipeShellProps) {
+export function RecipeShell({ recipe, t, onRecipeChange }: RecipeShellProps) {
   const [tab, setTab] = useState<Tab>("ingredients");
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState(recipe.name);
+  const [editIngredients, setEditIngredients] = useState(recipe.ingredients.join("\n"));
+  const [editInstructions, setEditInstructions] = useState(recipe.instructions.join("\n"));
+
+  const canEdit = typeof onRecipeChange === "function";
+
+  useEffect(() => {
+    if (!editing) {
+      setEditName(recipe.name);
+      setEditIngredients(recipe.ingredients.join("\n"));
+      setEditInstructions(recipe.instructions.join("\n"));
+    }
+  }, [recipe.name, recipe.ingredients, recipe.instructions, editing]);
+
+  function startEditing() {
+    setEditName(recipe.name);
+    setEditIngredients(recipe.ingredients.join("\n"));
+    setEditInstructions(recipe.instructions.join("\n"));
+    setEditing(true);
+  }
+
+  function saveEditing() {
+    onRecipeChange?.({
+      ...recipe,
+      name: editName.trim() || recipe.name,
+      ingredients: editIngredients
+        .split(/\n/)
+        .map((l) => l.trim())
+        .filter(Boolean),
+      instructions: editInstructions
+        .split(/\n/)
+        .map((l) => l.trim())
+        .filter(Boolean),
+    });
+    setEditing(false);
+  }
+
+  function cancelEditing() {
+    setEditName(recipe.name);
+    setEditIngredients(recipe.ingredients.join("\n"));
+    setEditInstructions(recipe.instructions.join("\n"));
+    setEditing(false);
+  }
 
   return (
     <article className="overflow-hidden rounded-[0.5rem] border border-stone-200/80 bg-white">
@@ -35,9 +80,47 @@ export function RecipeShell({ recipe, t }: RecipeShellProps) {
 
       {/* Editorial block: title, source, meta — generous spacing */}
       <div className="border-b border-stone-200/60 px-6 py-8 sm:px-10 sm:py-10">
-        <h1 className="text-2xl font-medium tracking-tight text-stone-900 sm:text-[1.75rem] sm:tracking-tight">
-          {recipe.name}
-        </h1>
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="text-2xl font-medium tracking-tight text-stone-900 sm:text-[1.75rem] sm:tracking-tight">
+            {editing ? (
+              <input
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                className="w-full rounded border border-stone-200 bg-stone-50 px-2 py-1 text-inherit focus:border-stone-400 focus:outline-none"
+              />
+            ) : (
+              recipe.name
+            )}
+          </h1>
+          {canEdit && !editing && (
+            <button
+              type="button"
+              onClick={startEditing}
+              className="shrink-0 text-sm font-medium text-stone-500 hover:text-stone-700"
+            >
+              {t("editRecipe")}
+            </button>
+          )}
+          {editing && (
+            <div className="flex shrink-0 gap-2">
+              <button
+                type="button"
+                onClick={saveEditing}
+                className="text-sm font-medium text-stone-700 hover:text-stone-900"
+              >
+                {t("saveEdits")}
+              </button>
+              <button
+                type="button"
+                onClick={cancelEditing}
+                className="text-sm text-stone-500 hover:text-stone-700"
+              >
+                {t("cancel")}
+              </button>
+            </div>
+          )}
+        </div>
         {recipe.source && (
           <p className="mt-3 text-sm text-stone-500">
             {t("from")}{" "}
@@ -100,26 +183,68 @@ export function RecipeShell({ recipe, t }: RecipeShellProps) {
       {/* Panel: calm body text, generous line-height */}
       <div className="min-h-[280px] px-6 py-8 sm:px-10 sm:py-10">
         {tab === "ingredients" && (
-          <ul className="space-y-3 text-stone-700 [line-height:1.75]">
-            {recipe.ingredients.map((item, i) => (
-              <li key={i} className="flex items-start gap-3">
-                <span className="mt-[0.5em] h-1 w-1 shrink-0 rounded-full bg-stone-400" />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
+          <>
+            {editing ? (
+              <textarea
+                value={editIngredients}
+                onChange={(e) => setEditIngredients(e.target.value)}
+                rows={12}
+                className="w-full rounded border border-stone-200 bg-stone-50 px-3 py-2 text-stone-700 focus:border-stone-400 focus:outline-none"
+                placeholder="One ingredient per line"
+              />
+            ) : recipe.ingredientSections && recipe.ingredientSections.length > 0 ? (
+              <div className="space-y-6 text-stone-700 [line-height:1.75]">
+                {recipe.ingredientSections.map((section, si) => (
+                  <div key={si}>
+                    <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-stone-600">
+                      {section.title}
+                    </h3>
+                    <ul className="space-y-2">
+                      {section.items.map((item, i) => (
+                        <li key={i} className="flex items-start gap-3">
+                          <span className="mt-[0.5em] h-1 w-1 shrink-0 rounded-full bg-stone-400" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <ul className="space-y-3 text-stone-700 [line-height:1.75]">
+                {recipe.ingredients.map((item, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <span className="mt-[0.5em] h-1 w-1 shrink-0 rounded-full bg-stone-400" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
         )}
         {tab === "steps" && (
-          <ol className="space-y-6 text-stone-700 [line-height:1.75]">
-            {recipe.instructions.map((step, i) => (
-              <li key={i} className="flex gap-5">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center text-sm font-medium text-stone-500">
-                  {i + 1}
-                </span>
-                <span className="pt-px">{step}</span>
-              </li>
-            ))}
-          </ol>
+          <>
+            {editing ? (
+              <textarea
+                value={editInstructions}
+                onChange={(e) => setEditInstructions(e.target.value)}
+                rows={14}
+                className="w-full rounded border border-stone-200 bg-stone-50 px-3 py-2 text-stone-700 focus:border-stone-400 focus:outline-none"
+                placeholder="One step per line"
+              />
+            ) : (
+              <ol className="space-y-6 text-stone-700 [line-height:1.75]">
+                {recipe.instructions.map((step, i) => (
+                  <li key={i} className="flex gap-5">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center text-sm font-medium text-stone-500">
+                      {i + 1}
+                    </span>
+                    <span className="pt-px">{step}</span>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </>
         )}
       </div>
 
