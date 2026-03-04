@@ -64,5 +64,12 @@
   "reparseTextHint": "OCR이 잘못 인식한 부분을 수정한 뒤 '다시 구문 분석' 또는 'AI로 수정'을 누르세요.",
   "reparseTextPlaceholder": "레시피 텍스트를 붙여 넣거나 수정하세요…",
   "reparseButton": "다시 구문 분석",
-  "fixWithAi": "AI로 수정"
+  "fixWithAi": "AI로 수정",
+  "settings": "설정",
+  "settingsPhotoImport": "사진 가져오기 (OpenAI)",
+  "settingsOpenAIDesc": "OpenAI API 키를 입력하면 사진 가져오기가 사용자 계정을 사용합니다. 이 브라우저에만 저장됩니다.",
+  "settingsOpenAIPlaceholder": "sk-...",
+  "settingsSave": "저장",
+  "settingsClear": "키 삭제",
+  "settingsKeySaved": "키가 저장되었습니다. 사진 가져오기에 사용됩니다."
 }

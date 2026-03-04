@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import sharp from "sharp";
 import type { Recipe } from "@/lib/types";
+import { createClient } from "@/lib/supabase/server";
+import { getAdminClient } from "@/lib/supabase/admin";
 
 export const maxDuration = 60;
 
+const PHOTO_IMPORT_LIMIT_PER_MONTH = 5;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const MAX_EDGE = 1024;
 
@@ -79,11 +82,61 @@ async function suggestRecipeTitle(
 }
 
 export async function POST(request: Request) {
-  if (!OPENAI_API_KEY?.trim()) {
+  const userKey = request.headers.get("X-OpenAI-API-Key")?.trim();
+  const apiKey = userKey || OPENAI_API_KEY?.trim();
+  if (!apiKey) {
     return NextResponse.json(
-      { error: "Photo import is not configured. Set OPENAI_API_KEY in your environment." },
+      {
+        error:
+          "Photo import needs an OpenAI API key. Add OPENAI_API_KEY in your server environment, or add your own key in Settings (photo import will use your account).",
+      },
       { status: 503 }
     );
+  }
+
+  const usingServerKey = !userKey;
+  let usageIdentifier: string | null = null;
+  if (usingServerKey) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      usageIdentifier = user.id;
+    } else {
+      const anonId = request.headers.get("X-Photo-Import-Id")?.trim();
+      if (anonId) usageIdentifier = `anon:${anonId}`;
+    }
+    if (!usageIdentifier) {
+      return NextResponse.json(
+        {
+          error:
+            "Log in or allow this app to identify your device (Settings) to use the free 5 photo imports per month.",
+          errorCode: "NEED_IDENTIFIER",
+        },
+        { status: 400 }
+      );
+    }
+    const admin = getAdminClient();
+    if (admin) {
+      const month = new Date().toISOString().slice(0, 7);
+      const { data: row } = await admin
+        .from("photo_import_usage")
+        .select("count")
+        .eq("identifier", usageIdentifier)
+        .eq("month", month)
+        .maybeSingle();
+      const count = row?.count ?? 0;
+      if (count >= PHOTO_IMPORT_LIMIT_PER_MONTH) {
+        return NextResponse.json(
+          {
+            error:
+              "You've used your 5 free photo imports this month. Add your own OpenAI API key in Settings, or subscribe for more.",
+            errorCode: "LIMIT_REACHED",
+            limit: PHOTO_IMPORT_LIMIT_PER_MONTH,
+          },
+          { status: 429 }
+        );
+      }
+    }
   }
 
   try {
@@ -122,7 +175,7 @@ export async function POST(request: Request) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
@@ -196,9 +249,26 @@ export async function POST(request: Request) {
       const suggested = await suggestRecipeTitle(
         recipe.ingredients,
         recipe.instructions,
-        OPENAI_API_KEY
+        apiKey
       );
       if (suggested) recipe.name = suggested;
+    }
+
+    if (usingServerKey && usageIdentifier) {
+      const admin = getAdminClient();
+      if (admin) {
+        const month = new Date().toISOString().slice(0, 7);
+        const { data: row } = await admin
+          .from("photo_import_usage")
+          .select("count")
+          .eq("identifier", usageIdentifier)
+          .eq("month", month)
+          .maybeSingle();
+        const nextCount = (row?.count ?? 0) + 1;
+        await admin
+          .from("photo_import_usage")
+          .upsert({ identifier: usageIdentifier, month, count: nextCount }, { onConflict: "identifier,month" });
+      }
     }
 
     return NextResponse.json(recipe);

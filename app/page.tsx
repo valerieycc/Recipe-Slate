@@ -17,6 +17,9 @@ import { useLocale } from "./LocaleProvider";
 import { RecipeView } from "./RecipeView";
 import { LOCALES } from "@/lib/i18n";
 
+const OPENAI_KEY_STORAGE_KEY = "recipe-slate-openai-api-key";
+const PHOTO_IMPORT_ID_KEY = "recipe-slate-photo-import-id";
+
 type Mode = "choose" | "url" | "photo";
 type View = "home" | "recipe" | "saved-list" | "recent-list";
 type AuthUser = { id: string; email?: string };
@@ -46,6 +49,17 @@ export default function Home() {
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [authError, setAuthError] = useState<string | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [openaiKeyInput, setOpenaiKeyInput] = useState("");
+  const [openaiKeySaved, setOpenaiKeySaved] = useState(false);
+
+  useEffect(() => {
+    try {
+      setOpenaiKeySaved(!!globalThis.localStorage?.getItem(OPENAI_KEY_STORAGE_KEY));
+    } catch {
+      setOpenaiKeySaved(false);
+    }
+  }, []);
 
   const fetchSavedFromServer = useCallback(async () => {
     const res = await fetch("/api/saved");
@@ -270,13 +284,31 @@ export default function Home() {
 
       const form = new FormData();
       form.append("image", blob, file.name);
+      const headers: Record<string, string> = {};
+      try {
+        const stored = globalThis.localStorage?.getItem(OPENAI_KEY_STORAGE_KEY);
+        if (stored?.trim()) headers["X-OpenAI-API-Key"] = stored.trim();
+        let importId = globalThis.localStorage?.getItem(PHOTO_IMPORT_ID_KEY);
+        if (!importId) {
+          importId = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `anon-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+          globalThis.localStorage?.setItem(PHOTO_IMPORT_ID_KEY, importId);
+        }
+        headers["X-Photo-Import-Id"] = importId;
+      } catch {
+        // ignore
+      }
       const res = await fetch("/api/recipe/photo", {
         method: "POST",
+        headers: Object.keys(headers).length ? headers : undefined,
         body: form,
         signal: AbortSignal.timeout(60_000),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed to read recipe from photo");
+      if (!res.ok) {
+        if (res.status === 429) throw new Error(data.error ?? "Photo import limit reached for this month.");
+        if (res.status === 400 && data.errorCode === "NEED_IDENTIFIER") throw new Error(data.error ?? "Please log in or enable photo import in Settings.");
+        throw new Error(data.error ?? "Failed to read recipe from photo");
+      }
       setRecipe(data);
       addToRecentMaybe(data);
       setCurrentSaved(null);
@@ -414,6 +446,84 @@ export default function Home() {
             {t("appTitle")}
           </h1>
           <div className="flex items-center gap-1">
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setSettingsOpen((o) => !o)}
+                className="rounded-md px-2 py-1.5 text-sm text-stone-500 hover:bg-stone-200/60 hover:text-[#1a1918]"
+                aria-label="Settings"
+                aria-expanded={settingsOpen}
+              >
+                {t("settings")}
+              </button>
+              {settingsOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-10"
+                    aria-hidden
+                    onClick={() => setSettingsOpen(false)}
+                  />
+                  <div className="absolute right-0 top-full z-20 mt-1 w-80 rounded-md border border-stone-200 bg-white p-4 shadow-sm">
+                    <p className="mb-3 text-xs font-medium uppercase tracking-wide text-stone-400">
+                      {t("settingsPhotoImport")}
+                    </p>
+                    <p className="mb-3 text-sm text-stone-600 leading-relaxed">
+                      {t("settingsOpenAIDesc")}
+                    </p>
+                    <input
+                      type="password"
+                      value={openaiKeyInput}
+                      onChange={(e) => setOpenaiKeyInput(e.target.value)}
+                      placeholder={t("settingsOpenAIPlaceholder")}
+                      className="mb-3 w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-sm placeholder:text-stone-400 focus:border-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-400/50"
+                      autoComplete="off"
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const key = openaiKeyInput.trim();
+                          if (key) {
+                            try {
+                              globalThis.localStorage?.setItem(OPENAI_KEY_STORAGE_KEY, key);
+                              setOpenaiKeySaved(true);
+                              setOpenaiKeyInput("");
+                              setSettingsOpen(false);
+                            } catch {
+                              // ignore
+                            }
+                          }
+                        }}
+                        className="rounded-md bg-[#1a1918] px-3 py-1.5 text-sm font-medium text-[#f8f6f3] hover:opacity-90"
+                      >
+                        {t("settingsSave")}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          try {
+                            globalThis.localStorage?.removeItem(OPENAI_KEY_STORAGE_KEY);
+                            setOpenaiKeySaved(false);
+                            setOpenaiKeyInput("");
+                            setSettingsOpen(false);
+                          } catch {
+                            // ignore
+                          }
+                        }}
+                        className="rounded-md border border-stone-200 bg-white px-3 py-1.5 text-sm font-medium text-[#1a1918] hover:bg-stone-50"
+                      >
+                        {t("settingsClear")}
+                      </button>
+                    </div>
+                    {openaiKeySaved && (
+                      <p className="mt-3 text-xs text-stone-500">
+                        {t("settingsKeySaved")}
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
             <div className="relative">
               <button
                 type="button"

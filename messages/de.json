@@ -64,5 +64,12 @@
   "reparseTextHint": "Text bei OCR-Fehlern anpassen, dann „Neu einlesen“ oder „Mit KI korrigieren“.",
   "reparseTextPlaceholder": "Rezepttext einfügen oder bearbeiten …",
   "reparseButton": "Neu einlesen",
-  "fixWithAi": "Mit KI korrigieren"
+  "fixWithAi": "Mit KI korrigieren",
+  "settings": "Einstellungen",
+  "settingsPhotoImport": "Foto-Import (OpenAI)",
+  "settingsOpenAIDesc": "OpenAI-API-Schlüssel eintragen, damit der Foto-Import dein Konto nutzt. Wird nur in diesem Browser gespeichert.",
+  "settingsOpenAIPlaceholder": "sk-…",
+  "settingsSave": "Speichern",
+  "settingsClear": "Schlüssel löschen",
+  "settingsKeySaved": "Schlüssel gespeichert. Foto-Import nutzt deinen Schlüssel."
 }

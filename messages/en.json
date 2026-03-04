@@ -59,5 +59,12 @@
   "reparseTextHint": "Edit the text below if OCR made mistakes, then Re-parse or use Fix with AI.",
   "reparseTextPlaceholder": "Paste or edit the recipe text…",
   "reparseButton": "Re-parse",
-  "fixWithAi": "Fix with AI"
+  "fixWithAi": "Fix with AI",
+  "settings": "Settings",
+  "settingsPhotoImport": "Photo import (OpenAI)",
+  "settingsOpenAIDesc": "Add your OpenAI API key to use photo import with your account. Stored only in this browser.",
+  "settingsOpenAIPlaceholder": "sk-...",
+  "settingsSave": "Save",
+  "settingsClear": "Clear key",
+  "settingsKeySaved": "Key saved. Photo import will use your key."
 }

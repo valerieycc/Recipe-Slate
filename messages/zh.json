@@ -64,5 +64,12 @@
   "reparseTextHint": "若 OCR 有誤可編輯下方文字，再按「重新解析」或「用 AI 修正」。",
   "reparseTextPlaceholder": "貼上或編輯食譜文字…",
   "reparseButton": "重新解析",
-  "fixWithAi": "用 AI 修正"
+  "fixWithAi": "用 AI 修正",
+  "settings": "設定",
+  "settingsPhotoImport": "照片匯入 (OpenAI)",
+  "settingsOpenAIDesc": "輸入您的 OpenAI API 金鑰，照片匯入即會使用您的帳戶。僅儲存於本瀏覽器。",
+  "settingsOpenAIPlaceholder": "sk-...",
+  "settingsSave": "儲存",
+  "settingsClear": "清除金鑰",
+  "settingsKeySaved": "金鑰已儲存，照片匯入將使用您的金鑰。"
 }
