@@ -124,7 +124,7 @@ export async function POST(request: Request) {
         .eq("identifier", usageIdentifier)
         .eq("month", month)
         .maybeSingle();
-      const count = row?.count ?? 0;
+      const count = (row as { count?: number } | null)?.count ?? 0;
       if (count >= PHOTO_IMPORT_LIMIT_PER_MONTH) {
         return NextResponse.json(
           {
@@ -264,10 +264,14 @@ export async function POST(request: Request) {
           .eq("identifier", usageIdentifier)
           .eq("month", month)
           .maybeSingle();
-        const nextCount = (row?.count ?? 0) + 1;
+        const nextCount = ((row as { count?: number } | null)?.count ?? 0) + 1;
         await admin
           .from("photo_import_usage")
-          .upsert({ identifier: usageIdentifier, month, count: nextCount }, { onConflict: "identifier,month" });
+          // Table not in generated types; payload matches photo_import_usage schema
+          .upsert(
+            { identifier: usageIdentifier, month, count: nextCount } as never,
+            { onConflict: "identifier,month" }
+          );
       }
     }
 
